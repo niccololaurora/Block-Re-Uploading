@@ -205,6 +205,14 @@ class Qclassifier:
             accuracy = tf.keras.metrics.BinaryAccuracy(threshold=0.5)
             accuracy.update_state(data[1], predictions_float)
             accuracy = accuracy.result().numpy()
+
+            with open("comparison.txt", "a") as file:
+                print("="*60)
+                predictions_float_numpy = [tensor.numpy() for tensor in predictions_float]
+                print(f"Predictions {predictions_float_numpy}", file=file)
+                print(f"Labels {data[1]}", file=file)
+                print(f"Accuracy {accuracy}", file=file)
+
             return accuracy
         else:
 
@@ -214,12 +222,6 @@ class Qclassifier:
 
             correct = tf.reduce_sum(compare)
             accuracy = correct / len(data[0])
-
-            with open("comparison.txt", "a") as file:
-                print(f"Predictions {predicted_fids}", file=file)
-                print(f"Labels {data[1]}", file=file)
-                print(f"Accuracy {accuracy}", file=file)
-
             return accuracy
 
     def prediction_function(self, data):
@@ -259,7 +261,6 @@ class Qclassifier:
         l = loss(expectation_values, labels)
         return l
 
-
     def loss_fidelity(self, data, labels):
         cf = 0.0
         for i in range(self.batch_size):
@@ -293,11 +294,16 @@ class Qclassifier:
             return loss
         
         if (self.loss == "fidelity"):
+            with open("history.txt", "a") as file:
+                print(f"Elements in batch (train-step): ({len(x_batch), len(y_batch)})", file=file)
             with tf.GradientTape() as tape:
                 loss = self.loss_fidelity(x_batch, y_batch)
             grads = tape.gradient(loss, self.vparams)
             grads = tf.math.real(grads)
             optimizer.apply_gradients(zip([grads], [self.vparams]))
+            with open("history.txt", "a") as file:
+                print(f"Loss (train-step): ({loss})", file=file)
+                print(f"Grad (train-step): ({grads})", file=file)
             return loss
 
     def training_loop(self):
@@ -315,8 +321,7 @@ class Qclassifier:
         history_val_accuracy = np.zeros(self.nepochs)
 
         number_of_batches = math.ceil(self.training_size / self.batch_size)
-
-        optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 
         loss = 0.0
         for epoch in range(self.nepochs):
@@ -324,15 +329,21 @@ class Qclassifier:
             print(f"Epoch {epoch}")
             for i in range(number_of_batches):
                 print(f"Batch {i}")
+
+                with open("history.txt", "a") as file:
+                    print(f"Epoch {epoch}", file=file) 
+                    print(f"Batch {i}", file=file) 
+                    
                 loss = self.train_step(
                     self.train[0][i * self.batch_size : (i + 1) * self.batch_size],
                     self.train[1][i * self.batch_size : (i + 1) * self.batch_size],
                     optimizer,
                 )
-                with open("parameters.txt", "a") as file:
-                    print(f"Epoch {epoch}", file=file) 
-                    print(f"Batch {i}", file=file) 
-                    print(self.vparams[0:20], file=file)
+
+                with open("history.txt", "a") as file:
+                    print(f"Elements in batch (training-loop) ({len(self.train[0][i * self.batch_size : (i + 1) * self.batch_size])}, {len(self.train[1][i * self.batch_size : (i + 1) * self.batch_size])})", file=file)
+                    print(f"Parametri: {self.vparams[0:20]}", file=file)
+                
 
             trained_params[epoch] = self.vparams
             history_train_loss[epoch] = loss

@@ -21,7 +21,7 @@ def main():
     nclasses = 2
     training_size = 20 * nclasses
     validation_size = 10 * nclasses
-    test_size = 10 * nclasses
+    test_size = 20 * nclasses
     batch_size = 2
     resize = 8
     # layers = [1, 2, 3, 4, 5, 6]
@@ -100,7 +100,6 @@ def main():
             }
 
             # SAVING
-
             name_file = "points_a_" + f"q{nqubits[k]}" + f"l{layers[j]}" + ".npz"
             np.savez(
                 file_path / name_file,
