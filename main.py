@@ -17,12 +17,12 @@ def main():
     # ==============
     # Configuration
     # ==============
-    epochs = 3
+    epochs = 30
     nclasses = 2
-    training_size = 20 * nclasses
-    validation_size = 10 * nclasses
-    test_size = 20 * nclasses
-    batch_size = 2
+    training_size = 50 * nclasses
+    validation_size = 20 * nclasses
+    test_size = 40 * nclasses
+    batch_size = 10
     resize = 8
     # layers = [1, 2, 3, 4, 5, 6]
     layers = [1]
@@ -84,6 +84,7 @@ def main():
                 trained_params,
                 history_train_loss,
                 history_val_loss,
+                history_train_accuracy,
                 history_val_accuracy,
             ) = my_class.training_loop()
 
@@ -129,6 +130,14 @@ def main():
             )
 
             name_file = (
+                "history_train_accuracy_" + f"q{nqubits[k]}" + f"l{layers[j]}" + ".npy"
+            )
+            np.save(
+                file_path / name_file,
+                history_train_accuracy,
+            )
+
+            name_file = (
                 "history_val_accuracy_" + f"q{nqubits[k]}" + f"l{layers[j]}" + ".npy"
             )
             np.save(
@@ -151,9 +160,19 @@ def main():
                 epochs,
                 history_train_loss,
                 history_val_loss,
+                history_train_accuracy,
                 history_val_accuracy,
             )
 
 
 if __name__ == "__main__":
+    profiler = cProfile.Profile()
+    profiler.enable()
     main()
+    profiler.disable()
+
+    # Salva le statistiche su un file
+    with open("profiling_stats.txt", "w") as f:
+        stats = pstats.Stats(profiler, stream=f)
+        stats.sort_stats(pstats.SortKey.TIME)
+        stats.print_stats()

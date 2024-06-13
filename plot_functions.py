@@ -69,7 +69,7 @@ def plot_sphere(qubit, layers, labels, label_states, final_states_b, final_state
     sfera.plot(file_path / name, save=True)
 
 
-def plot_loss_accuracy(qubit, layers, epochs, train_loss, val_loss, val_acc):
+def plot_loss_accuracy(qubit, layers, epochs, train_loss, val_loss, train_acc, val_acc):
     file_path = LOCAL_FOLDER / "plots"
     WIDTH = 0.5
 
@@ -103,7 +103,12 @@ def plot_loss_accuracy(qubit, layers, epochs, train_loss, val_loss, val_acc):
     ax1.legend()
 
     # Plot sul secondo asse
-    ax2.plot(epochs, val_acc, label="Validation", color="gold")
+    ax2.plot(epochs, val_acc, label="Training", alpha=0.8,
+        lw=1.5,
+        ls="-", color="royalblue")
+    ax2.plot(epochs, val_acc, label="Validation", alpha=0.8,
+        lw=1.5,
+        ls="-", color="coral")
     ax2.set_xlabel("Epoch")
     ax2.set_title("Accuracy")
     ax2.legend()

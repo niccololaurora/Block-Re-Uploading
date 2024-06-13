@@ -318,6 +318,7 @@ class Qclassifier:
         trained_params = np.zeros((self.nepochs, self.n_params))
         history_train_loss = np.zeros(self.nepochs)
         history_val_loss = np.zeros(self.nepochs)
+        history_train_accuracy = np.zeros(self.nepochs)
         history_val_accuracy = np.zeros(self.nepochs)
 
         number_of_batches = math.ceil(self.training_size / self.batch_size)
@@ -357,7 +358,9 @@ class Qclassifier:
                     self.validation[0], self.validation[1]
                 )
 
+            history_train_accuracy[epoch] = self.accuracy(self.training)
             history_val_accuracy[epoch] = self.accuracy(self.validation)
+            
 
             with open("epochs.txt", "a") as file:
                 print(f"Epoch {epoch}", file=file)
@@ -366,5 +369,6 @@ class Qclassifier:
             trained_params[-1],
             history_train_loss,
             history_val_loss,
+            history_train_accuracy,
             history_val_accuracy,
         )

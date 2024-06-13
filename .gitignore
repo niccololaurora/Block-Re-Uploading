@@ -6,6 +6,8 @@ __pycache__/
 /statistics/
 /plots/
 
+history_no_tf.txt
+history_tf.txt
 profiling_stats.txt
 comparison.txt
 profiling_stats.txt
