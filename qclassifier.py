@@ -202,14 +202,17 @@ class Qclassifier:
     def accuracy(self, data):
         predictions_float, predicted_fids, _ = self.prediction_function(data)
         if self.nclasses == 2:
-            accuracy = tf.keras.metrics.BinaryAccuracy(threshold=0.5)
-            accuracy.update_state(data[1], predictions_float)
-            accuracy = accuracy.result().numpy()
+            predicted_classes = tf.round(predictions_float)
+            correct_predictions = tf.equal(tf.cast(predicted_classes, tf.int32), tf.cast(data[1], tf.int32))
+            print(tf.cast(predicted_classes, tf.int32))
+            print(tf.cast(data[1], tf.int32))
+            accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
 
             with open("comparison.txt", "a") as file:
                 print("="*60)
                 predictions_float_numpy = [tensor.numpy() for tensor in predictions_float]
-                print(f"Predictions {predictions_float_numpy}", file=file)
+                print(f"Predictions float {predictions_float_numpy}", file=file)
+                print(f"Predictions class {predicted_classes}", file=file)
                 print(f"Labels {data[1]}", file=file)
                 print(f"Accuracy {accuracy}", file=file)
 
@@ -358,7 +361,7 @@ class Qclassifier:
                     self.validation[0], self.validation[1]
                 )
 
-            history_train_accuracy[epoch] = self.accuracy(self.training)
+            history_train_accuracy[epoch] = self.accuracy(self.train)
             history_val_accuracy[epoch] = self.accuracy(self.validation)
             
 
