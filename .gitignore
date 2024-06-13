@@ -1,5 +1,16 @@
-# Ignora file .DS_Store generati da macOS
+
 .DS_Store
 
-# Ignora directory __pycache__ generata da Python
 __pycache__/
+
+/statistics/
+/plots/
+
+profiling_stats.txt
+comparison.txt
+profiling_stats.txt
+epochs.txt
+history.txt
+
+pred_a.pdf
+pred_b.pdf
