@@ -17,13 +17,13 @@ def main():
     # ==============
     # Configuration
     # ==============
-    epochs = 30
+    epochs = 10
     nclasses = 2
-    training_size = 40 * nclasses
-    validation_size = 40 * nclasses
-    test_size = 40 * nclasses
-    batch_size = 20
-    resize = 4
+    training_size = 10 * nclasses
+    validation_size = 8 * nclasses
+    test_size = 10 * nclasses
+    batch_size = 5
+    resize = 8
     # layers = [1, 2, 3, 4, 5, 6]
     layers = [1]
     seed = 1
@@ -62,13 +62,13 @@ def main():
 
             # PREDICTIONS BEFORE TRAINING
 
-            test_set = my_class.get_test_set()
-            _, predictions, final_states_before = my_class.prediction_function(test_set)
+            val_set = my_class.get_val_set()
+            _, predictions, final_states_before = my_class.prediction_function(val_set)
             label_states = create_target(nclasses)
-            plot_predictions(predictions, test_set[0], test_set[1], "pred_b.pdf", 5, 5)
+            plot_predictions(predictions, val_set[0], val_set[1], "pred_b.pdf", 4, 4)
 
             dict_b = {
-                "labels": test_set[1],
+                "labels": val_set[1],
                 "final_states": final_states_before,
                 "label_states": label_states,
             }
@@ -91,11 +91,11 @@ def main():
             end_time = time.time()
             elapsed_time_minutes = (end_time - start_time) / 60
 
-            _, predictions, final_states_after = my_class.prediction_function(test_set)
-            plot_predictions(predictions, test_set[0], test_set[1], "pred_a.pdf", 5, 5)
+            _, predictions, final_states_after = my_class.prediction_function(val_set)
+            plot_predictions(predictions, val_set[0], val_set[1], "pred_a.pdf", 4, 4)
 
             dict_a = {
-                "labels": test_set[1],
+                "labels": val_set[1],
                 "final_states": final_states_after,
                 "label_states": label_states,
             }
@@ -145,11 +145,12 @@ def main():
                 history_val_accuracy,
             )
 
+  
             # PLOTTING
             plot_sphere(
                 nqubits[k],
                 layers[j],
-                test_set[1],
+                val_set[1],
                 label_states,
                 final_states_before,
                 final_states_after,

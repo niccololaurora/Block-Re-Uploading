@@ -65,6 +65,9 @@ class Qclassifier:
 
     def get_test_set(self):
         return self.test
+    
+    def get_val_set(self):
+        return self.validation
 
     def vparams_circuit(self, x):
         """Method which calculates the parameters necessary to embed an image in the circuit.
@@ -201,32 +204,23 @@ class Qclassifier:
         return expectation_value, predicted_state
 
     def accuracy(self, data):
+       
         predictions_float, predicted_fids, _ = self.prediction_function(data)
-        if self.nclasses == 2:
-            predicted_classes = tf.round(predictions_float)
-            correct_predictions = tf.equal(tf.cast(predicted_classes, tf.int32), tf.cast(data[1], tf.int32))
-            print(tf.cast(predicted_classes, tf.int32))
-            print(tf.cast(data[1], tf.int32))
-            accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
+        compare = np.zeros(len(data[0]))
+        for i in range(len(data[0])):
+            compare[i] = predicted_fids[i] == data[1][i]
 
-            with open("comparison.txt", "a") as file:
-                print("="*60)
-                predictions_float_numpy = [tensor.numpy() for tensor in predictions_float]
-                print(f"Predictions float {predictions_float_numpy}", file=file)
-                print(f"Predictions class {predicted_classes}", file=file)
-                print(f"Labels {data[1]}", file=file)
-                print(f"Accuracy {accuracy}", file=file)
+        correct = tf.reduce_sum(compare)
+        accuracy = correct / len(data[0])
 
-            return accuracy
-        else:
-
-            compare = np.zeros(len(data[0]))
-            for i in range(len(data[0])):
-                compare[i] = predicted_fids[i] == data[1][i]
-
-            correct = tf.reduce_sum(compare)
-            accuracy = correct / len(data[0])
-            return accuracy
+        with open("comparison.txt", "a") as file:
+            print("="*60)
+            print(f"Predictions class {predicted_fids}", file=file)
+            print(f"Labels {tf.cast(data[1], tf.int32)}", file=file)
+            print(f"Corrected predictions {compare}", file=file)
+            print(f"Accuracy {accuracy}", file=file)
+                
+        return accuracy
 
     def prediction_function(self, data):
 
@@ -253,17 +247,6 @@ class Qclassifier:
             predicted_states.append(predicted_state)
 
         return predictions_float, predictions_fids, predicted_states
-
-    def loss_crossentropy(self, data, labels):
-        expectation_values = []
-
-        for i in range(self.batch_size):
-            expectation_value, _ = self.circuit_output(data[i])
-            expectation_values.append(expectation_value)
-        
-        loss = tf.keras.losses.BinaryCrossentropy(from_logits=False)
-        l = loss(expectation_values, labels)
-        return l
 
     def loss_fidelity(self, data, labels):
         cf = 0.0
@@ -351,16 +334,11 @@ class Qclassifier:
                 
 
             trained_params[epoch] = self.vparams
-            history_train_loss[epoch] = loss
 
-            if (self.nclasses == 2) and (self.loss == "crossentropy"):
-                history_val_loss[epoch] = self.loss_crossentropy(
-                    self.validation[0], self.validation[1]
-                )
-            else:
-                history_val_loss[epoch] = self.loss_fidelity(
-                    self.validation[0], self.validation[1]
-                )
+            history_train_loss[epoch] = loss
+            history_val_loss[epoch] = self.loss_fidelity(
+                self.validation[0], self.validation[1]
+            )
 
             history_train_accuracy[epoch] = self.accuracy(self.train)
             history_val_accuracy[epoch] = self.accuracy(self.validation)
@@ -368,6 +346,8 @@ class Qclassifier:
 
             with open("epochs.txt", "a") as file:
                 print(f"Epoch {epoch}", file=file)
+                print(f"Accuracy training {history_train_accuracy[epoch]}", file=file)
+                print(f"Accuracy validation {history_val_accuracy[epoch]}", file=file)
 
         return (
             trained_params[-1],
