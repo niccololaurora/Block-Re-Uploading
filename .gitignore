@@ -1,0 +1,5 @@
+# Ignora file .DS_Store generati da macOS
+.DS_Store
+
+# Ignora directory __pycache__ generata da Python
+__pycache__/
