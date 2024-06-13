@@ -37,6 +37,7 @@ class Qclassifier:
         self.batch_size = batch_size
         self.targets = create_target(nclasses)
         self.loss = loss_2_classes
+        self.learning_rate = 0.01
 
         # IMAGE
         self.train, self.test, self.validation = initialize_data(
@@ -325,7 +326,7 @@ class Qclassifier:
         history_val_accuracy = np.zeros(self.nepochs)
 
         number_of_batches = math.ceil(self.training_size / self.batch_size)
-        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
         loss = 0.0
         for epoch in range(self.nepochs):

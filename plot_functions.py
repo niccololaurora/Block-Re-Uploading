@@ -103,7 +103,7 @@ def plot_loss_accuracy(qubit, layers, epochs, train_loss, val_loss, train_acc, v
     ax1.legend()
 
     # Plot sul secondo asse
-    ax2.plot(epochs, val_acc, label="Training", alpha=0.8,
+    ax2.plot(epochs, train_acc, label="Training", alpha=0.8,
         lw=1.5,
         ls="-", color="royalblue")
     ax2.plot(epochs, val_acc, label="Validation", alpha=0.8,

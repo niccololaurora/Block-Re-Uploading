@@ -17,12 +17,12 @@ def main():
     # ==============
     # Configuration
     # ==============
-    epochs = 2
+    epochs = 30
     nclasses = 2
-    training_size = 8 * nclasses
-    validation_size = 8 * nclasses
-    test_size = 20 * nclasses
-    batch_size = 2
+    training_size = 40 * nclasses
+    validation_size = 40 * nclasses
+    test_size = 40 * nclasses
+    batch_size = 20
     resize = 4
     # layers = [1, 2, 3, 4, 5, 6]
     layers = [1]
