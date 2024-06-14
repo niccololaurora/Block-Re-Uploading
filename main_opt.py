@@ -6,34 +6,32 @@ import pstats
 import numpy as np
 import tensorflow as tf
 from pathlib import Path
+import optuna
 from qclassifier import Qclassifier
 from plot_functions import Bloch, plot_predictions, plot_loss_accuracy, plot_sphere
 from help_functions import create_target
 
 LOCAL_FOLDER = Path(__file__).parent
 
-
-def main():
+def objective(trial):
     # ==============
     # Configuration
     # ==============
-    epochs = 40
-    learning_rate = 0.01
-    loss = "weighted_fidelity"
+    epochs = 2
     nclasses = 2
-    training_size = 50 * nclasses
-    validation_size = 50 * nclasses
-    test_size = 50 * nclasses
-    batch_size = 10
+    training_size = 20 * nclasses
+    validation_size = 20 * nclasses
+    test_size = 100 * nclasses
+    batch_size = 40
     resize = 8
-    # layers = [1, 2, 3, 4, 5, 6]
     layers = [1]
     seed = 1
-    # block_sizes = [[2, 4], [3, 4], [4, 4], [4, 8], [8, 8]]
     block_sizes = [[resize, resize]]
-    # nqubits = [8, 6, 4, 2, 1]
     nqubits = [1]
     pooling = "max"
+
+    # Hyperparameter to optimize
+    learning_rate = trial.suggest_categorical('learning_rate', [0.1, 0.5, 0.01, 0.05, 1e-3, 5e-3, 1e-4, 5e-4, 1e-5, 5e-5])
 
     file_path = LOCAL_FOLDER / "statistics"
     if not os.path.exists("statistics"):
@@ -41,17 +39,8 @@ def main():
     if not os.path.exists("plots"):
         os.makedirs("plots")
 
-    with open("summary.txt", file=file):
-        print(f"Qubits {nqubits[0]}", file=file)
-        print(f"Layers {layers[0]}", file=file)
-        print(f"Epochs {epochs}", file=file)
-        print(f"Classes {nclasses}", file=file)
-        print(f"Loss {loss}", file=file)
-        print(f"Learning Rate {learning_rate}", file=file)
-        print(f"Sizes (T, V) = ({training_size}, {validation_size})", file=file)
-
+    accuracy_qubits = []
     for k in range(len(nqubits)):
-        accuracy_qubits = []
         for j in range(len(layers)):
 
             my_class = Qclassifier(
@@ -68,8 +57,8 @@ def main():
                 pooling=pooling,
                 block_width=block_sizes[k][0],
                 block_height=block_sizes[k][1],
-                loss_2_classes=loss,
-                learning_rate=learning_rate,
+                loss_2_classes="fidelity",
+                learning_rate=learning_rate  # Ensure Qclassifier can accept learning_rate
             )
 
             # PREDICTIONS BEFORE TRAINING
@@ -157,7 +146,6 @@ def main():
                 history_val_accuracy,
             )
 
-  
             # PLOTTING
             plot_sphere(
                 nqubits[k],
@@ -176,12 +164,20 @@ def main():
                 history_train_accuracy,
                 history_val_accuracy,
             )
+            
+            # Objective value to optimize
+            accuracy_qubits.append(max(history_val_accuracy))
+
+    return np.mean(accuracy_qubits)
 
 
 if __name__ == "__main__":
     profiler = cProfile.Profile()
     profiler.enable()
-    main()
+
+    study = optuna.create_study(direction='maximize')
+    study.optimize(objective, n_trials=2)
+
     profiler.disable()
 
     # Salva le statistiche su un file
@@ -189,3 +185,9 @@ if __name__ == "__main__":
         stats = pstats.Stats(profiler, stream=f)
         stats.sort_stats(pstats.SortKey.TIME)
         stats.print_stats()
+
+    with open("best_params.txt", "w") as f:
+        f.write(f"Best trial value: {study.best_trial.value}\n")
+        f.write("Best parameters:\n")
+        for key, value in study.best_trial.params.items():
+            f.write(f"  {key}: {value}\n")

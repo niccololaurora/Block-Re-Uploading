@@ -23,6 +23,7 @@ class Qclassifier:
         nclasses,
         loss_2_classes,
         resize,
+        learning_rate,
     ):
 
         np.random.seed(seed_value)
@@ -37,7 +38,8 @@ class Qclassifier:
         self.batch_size = batch_size
         self.targets = create_target(nclasses)
         self.loss = loss_2_classes
-        self.learning_rate = 0.01
+        self.learning_rate = learning_rate
+        self.alpha = tf.Variable(tf.random.normal((nclasses,)), dtype=tf.float32)
 
         # IMAGE
         self.train, self.test, self.validation = initialize_data(
@@ -248,6 +250,38 @@ class Qclassifier:
 
         return predictions_float, predictions_fids, predicted_states
 
+    def loss_fidelity_weighted(self, data, labels):
+
+        overlaps = [1]
+        for i in range(self.nclasses-1):
+            target_state_1 = tf.gather(self.targets, i)
+            target_state_2 = tf.gather(self.targets, i+1)
+            overlap_label_states = fidelity(target_state_1, target_state_2)
+            overlaps.append(overlap_label_states)
+        
+        loss = 0.0
+        for i in range(self.batch_size):
+            _, pred_state = self.circuit_output(data[i])
+            for j in range(self.nclasses):
+                target_state = tf.gather(self.targets, j)
+                f = fidelity(pred_state, target_state)**2
+                loss += (self.alpha*f - overlaps[j])**2
+        
+        return loss
+
+    def loss_crossentropy(self, data, labels):
+
+        expectation_values = []
+        for i in range(self.batch_size):
+            expectation_value, _ = self.circuit_output(data[i]) 
+            output = (expectation_value+1)/2
+            expectation_values.append(output)
+
+        loss = tf.keras.losses.BinaryCrossentropy()
+        l = loss(labels, expectation_values)
+
+        return l
+
     def loss_fidelity(self, data, labels):
         cf = 0.0
         for i in range(self.batch_size):
@@ -255,7 +289,7 @@ class Qclassifier:
             label = tf.gather(labels, i)
             label = tf.cast(label, tf.int32)
             true_state = tf.gather(self.targets, label)
-            cf += (1 - fidelity(pred_state, true_state)) ** 2
+            cf += 1 - fidelity(pred_state, true_state) ** 2
 
         return cf
 
@@ -272,25 +306,34 @@ class Qclassifier:
         Returns:
             loss (tf.Variable): average loss of the training batch.
         """
-        if (self.nclasses == 2) and (self.loss == "crossentropy"):
+        if (self.nclasses == "crossentropy"):
             with tf.GradientTape() as tape:
                 loss = self.loss_crossentropy(x_batch, y_batch)
             grads = tape.gradient(loss, self.vparams)
             grads = tf.math.real(grads)
             optimizer.apply_gradients(zip([grads], [self.vparams]))
+
+            with open("grad.txt", "a") as file:
+                print("="*60)
+                print(f"Gradients {grads[0:10]}", file=file)
+                print(f"Loss {loss}", file=file)
             return loss
         
         if (self.loss == "fidelity"):
-            with open("history.txt", "a") as file:
-                print(f"Elements in batch (train-step): ({len(x_batch), len(y_batch)})", file=file)
             with tf.GradientTape() as tape:
                 loss = self.loss_fidelity(x_batch, y_batch)
             grads = tape.gradient(loss, self.vparams)
             grads = tf.math.real(grads)
             optimizer.apply_gradients(zip([grads], [self.vparams]))
-            with open("history.txt", "a") as file:
-                print(f"Loss (train-step): ({loss})", file=file)
-                print(f"Grad (train-step): ({grads})", file=file)
+            return loss
+
+        if (self.loss == "weighted_fidelity"):
+            with tf.GradientTape() as tape:
+                loss = self.loss_fidelity_weighted(x_batch, y_batch)
+            trainable_variables = [self.vparams, self.alpha]
+            grads = tape.gradient(loss, trainable_variables)
+            grads = [tf.math.real(g) for g in grads]
+            optimizer.apply_gradients(zip(grads, trainable_variables))
             return loss
 
     def training_loop(self):
