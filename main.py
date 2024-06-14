@@ -17,7 +17,7 @@ def main():
     # ==============
     # Configuration
     # ==============
-    epochs = 40
+    epochs = 5
     learning_rate = 0.01
     loss = "weighted_fidelity"
     nclasses = 2
@@ -41,14 +41,14 @@ def main():
     if not os.path.exists("plots"):
         os.makedirs("plots")
 
-    with open("summary.txt", file=file):
-        print(f"Qubits {nqubits[0]}", file=file)
-        print(f"Layers {layers[0]}", file=file)
-        print(f"Epochs {epochs}", file=file)
-        print(f"Classes {nclasses}", file=file)
-        print(f"Loss {loss}", file=file)
-        print(f"Learning Rate {learning_rate}", file=file)
-        print(f"Sizes (T, V) = ({training_size}, {validation_size})", file=file)
+    with open("summary.txt", "w") as file:
+        print(f"Qubits: {nqubits[0]}", file=file)
+        print(f"Layers: {layers[0]}", file=file)
+        print(f"Epochs: {epochs}", file=file)
+        print(f"Classes: {nclasses}", file=file)
+        print(f"Loss: {loss}", file=file)
+        print(f"Learning Rate: {learning_rate}", file=file)
+        print(f"Sizes: (T, V) = ({training_size}, {validation_size})", file=file)
 
     for k in range(len(nqubits)):
         accuracy_qubits = []
