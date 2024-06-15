@@ -67,7 +67,7 @@ class Qclassifier:
 
     def get_test_set(self):
         return self.test
-    
+
     def get_val_set(self):
         return self.validation
 
@@ -206,7 +206,7 @@ class Qclassifier:
         return expectation_value, predicted_state
 
     def accuracy(self, data):
-       
+
         predictions_float, predicted_fids, _ = self.prediction_function(data)
         compare = np.zeros(len(data[0]))
         for i in range(len(data[0])):
@@ -216,12 +216,12 @@ class Qclassifier:
         accuracy = correct / len(data[0])
 
         with open("comparison.txt", "a") as file:
-            print("="*60)
+            print("=" * 60)
             print(f"Predictions class {predicted_fids}", file=file)
             print(f"Labels {tf.cast(data[1], tf.int32)}", file=file)
             print(f"Corrected predictions {compare}", file=file)
             print(f"Accuracy {accuracy}", file=file)
-                
+
         return accuracy
 
     def prediction_function(self, data):
@@ -255,17 +255,23 @@ class Qclassifier:
         for i in range(self.batch_size):
             _, pred_state = self.circuit_output(data[i])
             for j in range(self.nclasses):
-                f_1 = fidelity(pred_state, tf.gather(self.targets, j))**2
-                f_2 = fidelity(tf.gather(self.targets, tf.cast(labels[i], dtype=tf.int32)), tf.gather(self.targets, j))**2
-                loss += (tf.gather(self.alpha, j)*f_1 - f_2)**2
+                f_1 = fidelity(pred_state, tf.gather(self.targets, j)) ** 2
+                f_2 = (
+                    fidelity(
+                        tf.gather(self.targets, tf.cast(labels[i], dtype=tf.int32)),
+                        tf.gather(self.targets, j),
+                    )
+                    ** 2
+                )
+                loss += (tf.gather(self.alpha, j) * f_1 - f_2) ** 2
         return loss
 
     def loss_crossentropy(self, data, labels):
 
         expectation_values = []
         for i in range(self.batch_size):
-            expectation_value, _ = self.circuit_output(data[i]) 
-            output = (expectation_value+1)/2
+            expectation_value, _ = self.circuit_output(data[i])
+            output = (expectation_value + 1) / 2
             expectation_values.append(output)
 
         loss = tf.keras.losses.BinaryCrossentropy()(labels, expectation_values)
@@ -295,7 +301,7 @@ class Qclassifier:
         Returns:
             loss (tf.Variable): average loss of the training batch.
         """
-        if (self.nclasses == "crossentropy"):
+        if self.nclasses == "crossentropy":
             with tf.GradientTape() as tape:
                 loss = self.loss_crossentropy(x_batch, y_batch)
             grads = tape.gradient(loss, self.vparams)
@@ -303,12 +309,12 @@ class Qclassifier:
             optimizer.apply_gradients(zip([grads], [self.vparams]))
 
             with open("grad.txt", "a") as file:
-                print("="*60, file=file)
+                print("=" * 60, file=file)
                 print(f"Gradients {grads[0:10]}", file=file)
                 print(f"Loss {loss}", file=file)
             return loss
-        
-        if (self.loss == "fidelity"):
+
+        if self.loss == "fidelity":
             with tf.GradientTape() as tape:
                 loss = self.loss_fidelity(x_batch, y_batch)
             grads = tape.gradient(loss, self.vparams)
@@ -316,18 +322,13 @@ class Qclassifier:
             optimizer.apply_gradients(zip([grads], [self.vparams]))
             return loss
 
-        if (self.loss == "weighted_fidelity"):
+        if self.loss == "weighted_fidelity":
             with tf.GradientTape() as tape:
                 loss = self.loss_fidelity_weighted(x_batch, y_batch)
             trainable_variables = [self.vparams, self.alpha]
             grads = tape.gradient(loss, trainable_variables)
             grads = [tf.math.real(g) for g in grads]
             optimizer.apply_gradients(zip(grads, trainable_variables))
-
-            with open("history.txt", "a") as file:
-                print("="*60, file=file)
-                print(f"Loss: {loss}", file=file) 
-                print("="*60, file=file)
 
             return loss
 
@@ -354,7 +355,7 @@ class Qclassifier:
             self.train = shuffle(self.train)
             print(f"Epoch {epoch}")
             for i in range(number_of_batches):
-                print(f"Batch {i}")    
+                print(f"Batch {i}")
                 loss = self.train_step(
                     self.train[0][i * self.batch_size : (i + 1) * self.batch_size],
                     self.train[1][i * self.batch_size : (i + 1) * self.batch_size],
@@ -362,11 +363,10 @@ class Qclassifier:
                 )
 
                 with open("history.txt", "a") as file:
-                    print(f"Epoch {epoch}", file=file) 
-                    print(f"Batch {i}", file=file) 
-                    print(f"Loss: {loss}", file=file) 
+                    print(f"Epoch {epoch}", file=file)
+                    print(f"Batch {i}", file=file)
+                    print(f"Loss: {loss}", file=file)
                     print(f"Parametri: {self.vparams[0:20]}", file=file)
-                
 
             trained_params[epoch] = self.vparams
 
@@ -377,7 +377,6 @@ class Qclassifier:
 
             history_train_accuracy[epoch] = self.accuracy(self.train)
             history_val_accuracy[epoch] = self.accuracy(self.validation)
-            
 
             with open("epochs.txt", "a") as file:
                 print(f"Epoch {epoch}", file=file)

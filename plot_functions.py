@@ -23,7 +23,7 @@ def plot_predictions(predictions, x_data, y_data, name, rows, columns):
     Returns:
         Predictions table plot.
     """
-
+    file_path = LOCAL_FOLDER / "plots"
     fig, ax = plt.subplots(nrows=rows, ncols=columns, figsize=(12, 12))
 
     for i in range(rows):
@@ -38,7 +38,8 @@ def plot_predictions(predictions, x_data, y_data, name, rows, columns):
             ax[i][j].set_xticks([])
             ax[i][j].set_yticks([])
 
-    plt.savefig(name)
+    name_file = file_path / name
+    plt.savefig(name_file)
     plt.close()
 
 
@@ -103,12 +104,18 @@ def plot_loss_accuracy(qubit, layers, epochs, train_loss, val_loss, train_acc, v
     ax1.legend()
 
     # Plot sul secondo asse
-    ax2.plot(epochs, train_acc, label="Training", alpha=0.8,
+    ax2.plot(
+        epochs,
+        train_acc,
+        label="Training",
+        alpha=0.8,
         lw=1.5,
-        ls="-", color="royalblue")
-    ax2.plot(epochs, val_acc, label="Validation", alpha=0.8,
-        lw=1.5,
-        ls="-", color="coral")
+        ls="-",
+        color="royalblue",
+    )
+    ax2.plot(
+        epochs, val_acc, label="Validation", alpha=0.8, lw=1.5, ls="-", color="coral"
+    )
     ax2.set_xlabel("Epoch")
     ax2.set_title("Accuracy")
     ax2.legend()

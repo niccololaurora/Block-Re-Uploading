@@ -17,17 +17,17 @@ def main():
     # ==============
     # Configuration
     # ==============
-    epochs = 100
+    epochs = 2
     learning_rate = 0.01
-    loss = "weighted_fidelity"
-    nclasses = 3
-    training_size = 100 * nclasses
-    validation_size = 100 * nclasses
+    loss = "fidelity"
+    nclasses = 2
+    training_size = 10 * nclasses
+    validation_size = 20 * nclasses
     test_size = 50 * nclasses
-    batch_size = 30
+    batch_size = 40
     resize = 8
     # layers = [1, 2, 3, 4, 5, 6]
-    layers = [1]
+    layers = [3]
     seed = 1
     # block_sizes = [[2, 4], [3, 4], [4, 4], [4, 8], [8, 8]]
     block_sizes = [[resize, resize]]
@@ -73,7 +73,6 @@ def main():
             )
 
             # PREDICTIONS BEFORE TRAINING
-
             val_set = my_class.get_val_set()
             _, predictions, final_states_before = my_class.prediction_function(val_set)
             label_states = create_target(nclasses)
