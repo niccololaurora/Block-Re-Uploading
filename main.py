@@ -17,14 +17,14 @@ def main():
     # ==============
     # Configuration
     # ==============
-    epochs = 5
+    epochs = 100
     learning_rate = 0.01
     loss = "weighted_fidelity"
-    nclasses = 2
-    training_size = 50 * nclasses
-    validation_size = 50 * nclasses
+    nclasses = 3
+    training_size = 100 * nclasses
+    validation_size = 100 * nclasses
     test_size = 50 * nclasses
-    batch_size = 10
+    batch_size = 30
     resize = 8
     # layers = [1, 2, 3, 4, 5, 6]
     layers = [1]
@@ -157,7 +157,6 @@ def main():
                 history_val_accuracy,
             )
 
-  
             # PLOTTING
             plot_sphere(
                 nqubits[k],

@@ -251,14 +251,14 @@ class Qclassifier:
         return predictions_float, predictions_fids, predicted_states
 
     def loss_fidelity_weighted(self, data, labels):
-       loss = 0.0
-       for i in range(self.batch):
-            _, pred_state = self.circuit(data[i])
+        loss = 0.0
+        for i in range(self.batch_size):
+            _, pred_state = self.circuit_output(data[i])
             for j in range(self.nclasses):
                 f_1 = fidelity(pred_state, tf.gather(self.targets, j))**2
-                f_2 = fidelity(tf.gather(self.targets[labels[i]], tf.gather(self.targets, j)))**2
+                f_2 = fidelity(tf.gather(self.targets, tf.cast(labels[i], dtype=tf.int32)), tf.gather(self.targets, j))**2
                 loss += (tf.gather(self.alpha, j)*f_1 - f_2)**2
-return loss
+        return loss
 
     def loss_crossentropy(self, data, labels):
 
