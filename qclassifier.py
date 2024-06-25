@@ -24,6 +24,7 @@ class Qclassifier:
         loss_2_classes,
         resize,
         learning_rate,
+        digits,
     ):
 
         np.random.seed(seed_value)
@@ -44,6 +45,7 @@ class Qclassifier:
         # IMAGE
         self.train, self.test, self.validation = initialize_data(
             nclasses,
+            digits,
             self.training_size,
             self.test_size,
             self.validation_size,
@@ -280,6 +282,10 @@ class Qclassifier:
     def loss_fidelity(self, data, labels):
         cf = 0.0
         for i in range(self.batch_size):
+            if i > len(data):
+                raise ValueError(
+                    f"Index {i} is out of bounds for array of length {len(data)}"
+                )
             _, pred_state = self.circuit_output(data[i])
             label = tf.gather(labels, i)
             label = tf.cast(label, tf.int32)
@@ -301,7 +307,7 @@ class Qclassifier:
         Returns:
             loss (tf.Variable): average loss of the training batch.
         """
-        if self.nclasses == "crossentropy":
+        if self.loss == "crossentropy":
             with tf.GradientTape() as tape:
                 loss = self.loss_crossentropy(x_batch, y_batch)
             grads = tape.gradient(loss, self.vparams)

@@ -17,9 +17,9 @@ def main():
     # ==============
     # Configuration
     # ==============
-    epochs = 2
+    epochs = 4
     learning_rate = 0.01
-    loss = "fidelity"
+    loss = "crossentropy"
     nclasses = 2
     training_size = 10 * nclasses
     validation_size = 20 * nclasses
@@ -27,13 +27,14 @@ def main():
     batch_size = 40
     resize = 8
     # layers = [1, 2, 3, 4, 5, 6]
-    layers = [3]
+    layers = [1]
     seed = 1
     # block_sizes = [[2, 4], [3, 4], [4, 4], [4, 8], [8, 8]]
     block_sizes = [[resize, resize]]
     # nqubits = [8, 6, 4, 2, 1]
     nqubits = [1]
     pooling = "max"
+    digits = [0, 1]
 
     file_path = LOCAL_FOLDER / "statistics"
     if not os.path.exists("statistics"):
@@ -70,6 +71,7 @@ def main():
                 block_height=block_sizes[k][1],
                 loss_2_classes=loss,
                 learning_rate=learning_rate,
+                digits=digits,
             )
 
             # PREDICTIONS BEFORE TRAINING

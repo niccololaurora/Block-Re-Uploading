@@ -1,7 +1,7 @@
 Qubits: 1
-Layers: 3
-Epochs: 2
+Layers: 1
+Epochs: 4
 Classes: 2
-Loss: fidelity
+Loss: crossentropy
 Learning Rate: 0.01
 Sizes: (T, V) = (20, 40)

@@ -3,16 +3,15 @@ import tensorflow as tf
 from datetime import datetime
 
 
-def initialize_data(nclasses, training_size, test_size, validation_size, resize):
+def initialize_data(digits, training_size, test_size, validation_size, resize):
     """Method which prepares the validation, training and test datasets."""
 
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
     # ==============
     # Select classes of interest
-    classes = list(range(nclasses))
-    mask_train = np.isin(y_train, classes)
-    mask_test = np.isin(y_test, classes)
+    mask_train = np.isin(y_train, digits)
+    mask_test = np.isin(y_test, digits)
     x_train, y_train = x_train[mask_train], y_train[mask_train]
     x_test, y_test = x_test[mask_test], y_test[mask_test]
 
@@ -20,12 +19,12 @@ def initialize_data(nclasses, training_size, test_size, validation_size, resize)
     # Perfect balance of the classes
     train_val_indices = []
     test_indices = []
-    for class_label in classes:
+    for class_label in digits:
         # Training
         train_indices_class = np.where(y_train == class_label)[0]
         sampled_indices_train = np.random.choice(
             train_indices_class,
-            size=(training_size + validation_size) // nclasses,
+            size=(training_size + validation_size) // len(digits),
             replace=False,
         )
         train_val_indices.extend(sampled_indices_train)
@@ -33,7 +32,7 @@ def initialize_data(nclasses, training_size, test_size, validation_size, resize)
         # Test
         test_indices_class = np.where(y_test == class_label)[0]
         sampled_indices_test = np.random.choice(
-            test_indices_class, size=test_size // nclasses, replace=False
+            test_indices_class, size=test_size // len(digits), replace=False
         )
         test_indices.extend(sampled_indices_test)
 
@@ -46,19 +45,20 @@ def initialize_data(nclasses, training_size, test_size, validation_size, resize)
     # np.random.shuffle(train_val_indices)
     val_indices = []
     train_indices = []
-    for n in classes:
+    for n in range(len(digits)):
         vindex_1 = (
-            n * int(validation_size / nclasses) + int(training_size / nclasses) * n
+            n * int(validation_size / len(digits))
+            + int(training_size / len(digits)) * n
         )
         vindex_2 = (
-            int(validation_size / nclasses) * (n + 1)
-            + int(training_size / nclasses) * n
+            int(validation_size / len(digits)) * (n + 1)
+            + int(training_size / len(digits)) * n
         )
-        tindex_1 = n * int(training_size / nclasses) + int(
-            validation_size / nclasses
+        tindex_1 = n * int(training_size / len(digits)) + int(
+            validation_size / len(digits)
         ) * (n + 1)
-        tindex_2 = (n + 1) * int(training_size / nclasses) + int(
-            validation_size / nclasses
+        tindex_2 = (n + 1) * int(training_size / len(digits)) + int(
+            validation_size / len(digits)
         ) * (n + 1)
         validation_pick = train_val_indices[vindex_1:vindex_2]
         train_pick = train_val_indices[tindex_1:tindex_2]
