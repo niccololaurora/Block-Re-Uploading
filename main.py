@@ -19,7 +19,7 @@ def main():
     # ==============
     epochs = 4
     learning_rate = 0.01
-    loss = "crossentropy"
+    loss = "weighted_fidelity"
     digits = [5, 6]
     training_size = 10 * len(digits)
     validation_size = 20 * len(digits)

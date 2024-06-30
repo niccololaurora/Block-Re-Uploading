@@ -193,9 +193,9 @@ def create_hamiltonian(nqubits):
     Returns:
         qibo.hamiltonians.SymbolicHamiltonian()
     """
-    ham = 0
+    ham = I(0)
     for k in range(nqubits):
-        ham = I(0) * Z(k)
+        ham *= Z(k)
     hamiltonian = hamiltonians.SymbolicHamiltonian(ham)
     print(f"Hamiltoniana type {type(hamiltonian.matrix)}")
     return hamiltonian

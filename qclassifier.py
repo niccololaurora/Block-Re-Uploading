@@ -210,7 +210,6 @@ class Qclassifier:
         predicted_state = result.state()
 
         expectation_value = self.hamiltonian.expectation(predicted_state)
-        print(f"Hamiltoniana type (alloc) {type(self.hamiltonian.matrix)}")
         return expectation_value, predicted_state
 
     def accuracy(self, data):
@@ -276,18 +275,19 @@ class Qclassifier:
 
     def loss_crossentropy(self, x_batch, y_batch):
 
-        loss = 0.0
+        outputs = np.zeros(self.batch_size)
         for i in range(self.batch_size):
             if i > len(x_batch):
                 raise_error(
                     ValueError,
-                    f"Index {i} is out of bounds for array of length {len(data)}",
+                    f"Index {i} is out of bounds for array of length {len(x_batch)}",
                 )
 
             expectation_value, _ = self.circuit_output(x_batch[i])
             output = (expectation_value + 1) / 2
+            outputs[i] = output
 
-        loss = tf.keras.losses.BinaryCrossentropy()(label, output)
+        loss = tf.keras.losses.BinaryCrossentropy()(y_batch, outputs)
         print(f"Loss {loss}")
 
         return loss
@@ -327,7 +327,7 @@ class Qclassifier:
                 print(f"Loss value (GradientTape) {loss}")
             grads = tape.gradient(loss, self.vparams)
 
-            with open("grad.txt", "a") as file:
+            with open("grad_cross.txt", "a") as file:
                 print("=" * 60, file=file)
                 print(f"Gradients {grads}", file=file)
                 print(f"Loss {loss}", file=file)
@@ -342,6 +342,12 @@ class Qclassifier:
                 loss = self.loss_fidelity(x_batch, y_batch)
             grads = tape.gradient(loss, self.vparams)
             grads = tf.math.real(grads)
+
+            with open("grad_fid.txt", "a") as file:
+                print("=" * 60, file=file)
+                print(f"Gradients {grads}", file=file)
+                print(f"Loss {loss}", file=file)
+
             optimizer.apply_gradients(zip([grads], [self.vparams]))
             return loss
 
@@ -351,6 +357,12 @@ class Qclassifier:
             trainable_variables = [self.vparams, self.alpha]
             grads = tape.gradient(loss, trainable_variables)
             grads = [tf.math.real(g) for g in grads]
+
+            with open("grad_w_fid.txt", "a") as file:
+                print("=" * 60, file=file)
+                print(f"Gradients {grads}", file=file)
+                print(f"Loss {loss}", file=file)
+
             optimizer.apply_gradients(zip(grads, trainable_variables))
 
             return loss
