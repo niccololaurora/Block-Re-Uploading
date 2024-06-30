@@ -1,7 +1,10 @@
 import numpy as np
 import tensorflow as tf
 import math
+
 from qibo import Circuit, gates, hamiltonians, set_backend
+from qibo.config import raise_error
+
 from data import initialize_data, pooling_creator, block_creator, shuffle
 from help_functions import fidelity, create_target, number_params, create_hamiltonian
 
@@ -44,7 +47,6 @@ class Qclassifier:
 
         # IMAGE
         self.train, self.test, self.validation = initialize_data(
-            nclasses,
             digits,
             self.training_size,
             self.test_size,
@@ -72,6 +74,9 @@ class Qclassifier:
 
     def get_val_set(self):
         return self.validation
+
+    def set_parameters(self, vparams):
+        self.vparams = vparams
 
     def vparams_circuit(self, x):
         """Method which calculates the parameters necessary to embed an image in the circuit.
@@ -205,6 +210,7 @@ class Qclassifier:
         predicted_state = result.state()
 
         expectation_value = self.hamiltonian.expectation(predicted_state)
+        print(f"Hamiltoniana type (alloc) {type(self.hamiltonian.matrix)}")
         return expectation_value, predicted_state
 
     def accuracy(self, data):
@@ -268,23 +274,31 @@ class Qclassifier:
                 loss += (tf.gather(self.alpha, j) * f_1 - f_2) ** 2
         return loss
 
-    def loss_crossentropy(self, data, labels):
+    def loss_crossentropy(self, x_batch, y_batch):
 
-        expectation_values = []
+        loss = 0.0
         for i in range(self.batch_size):
-            expectation_value, _ = self.circuit_output(data[i])
-            output = (expectation_value + 1) / 2
-            expectation_values.append(output)
+            if i > len(x_batch):
+                raise_error(
+                    ValueError,
+                    f"Index {i} is out of bounds for array of length {len(data)}",
+                )
 
-        loss = tf.keras.losses.BinaryCrossentropy()(labels, expectation_values)
+            expectation_value, _ = self.circuit_output(x_batch[i])
+            output = (expectation_value + 1) / 2
+
+        loss = tf.keras.losses.BinaryCrossentropy()(label, output)
+        print(f"Loss {loss}")
+
         return loss
 
     def loss_fidelity(self, data, labels):
         cf = 0.0
         for i in range(self.batch_size):
             if i > len(data):
-                raise ValueError(
-                    f"Index {i} is out of bounds for array of length {len(data)}"
+                raise_error(
+                    ValueError,
+                    f"Index {i} is out of bounds for array of length {len(data)}",
                 )
             _, pred_state = self.circuit_output(data[i])
             label = tf.gather(labels, i)
@@ -294,7 +308,7 @@ class Qclassifier:
 
         return cf
 
-    @tf.function
+    # @tf.function
     def train_step(self, x_batch, y_batch, optimizer):
         """Evaluate loss function on one train batch.
 
@@ -310,14 +324,17 @@ class Qclassifier:
         if self.loss == "crossentropy":
             with tf.GradientTape() as tape:
                 loss = self.loss_crossentropy(x_batch, y_batch)
+                print(f"Loss value (GradientTape) {loss}")
             grads = tape.gradient(loss, self.vparams)
-            grads = tf.math.real(grads)
-            optimizer.apply_gradients(zip([grads], [self.vparams]))
 
             with open("grad.txt", "a") as file:
                 print("=" * 60, file=file)
-                print(f"Gradients {grads[0:10]}", file=file)
+                print(f"Gradients {grads}", file=file)
                 print(f"Loss {loss}", file=file)
+
+            grads = tf.math.real(grads)
+            optimizer.apply_gradients(zip([grads], [self.vparams]))
+
             return loss
 
         if self.loss == "fidelity":

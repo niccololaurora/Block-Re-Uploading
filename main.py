@@ -20,11 +20,11 @@ def main():
     epochs = 4
     learning_rate = 0.01
     loss = "crossentropy"
-    nclasses = 2
-    training_size = 10 * nclasses
-    validation_size = 20 * nclasses
-    test_size = 50 * nclasses
-    batch_size = 40
+    digits = [5, 6]
+    training_size = 10 * len(digits)
+    validation_size = 20 * len(digits)
+    test_size = 50 * len(digits)
+    batch_size = int(10 * len(digits) / 10)
     resize = 8
     # layers = [1, 2, 3, 4, 5, 6]
     layers = [1]
@@ -34,7 +34,6 @@ def main():
     # nqubits = [8, 6, 4, 2, 1]
     nqubits = [1]
     pooling = "max"
-    digits = [0, 1]
 
     file_path = LOCAL_FOLDER / "statistics"
     if not os.path.exists("statistics"):
@@ -46,7 +45,7 @@ def main():
         print(f"Qubits: {nqubits[0]}", file=file)
         print(f"Layers: {layers[0]}", file=file)
         print(f"Epochs: {epochs}", file=file)
-        print(f"Classes: {nclasses}", file=file)
+        print(f"Classes: {len(digits)}", file=file)
         print(f"Loss: {loss}", file=file)
         print(f"Learning Rate: {learning_rate}", file=file)
         print(f"Sizes: (T, V) = ({training_size}, {validation_size})", file=file)
@@ -65,7 +64,7 @@ def main():
                 seed_value=seed,
                 nqubits=nqubits[k],
                 resize=resize,
-                nclasses=nclasses,
+                nclasses=len(digits),
                 pooling=pooling,
                 block_width=block_sizes[k][0],
                 block_height=block_sizes[k][1],
@@ -77,7 +76,7 @@ def main():
             # PREDICTIONS BEFORE TRAINING
             val_set = my_class.get_val_set()
             _, predictions, final_states_before = my_class.prediction_function(val_set)
-            label_states = create_target(nclasses)
+            label_states = create_target(len(digits))
             plot_predictions(predictions, val_set[0], val_set[1], "pred_b.pdf", 4, 4)
 
             dict_b = {

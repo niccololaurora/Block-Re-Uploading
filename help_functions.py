@@ -197,6 +197,7 @@ def create_hamiltonian(nqubits):
     for k in range(nqubits):
         ham = I(0) * Z(k)
     hamiltonian = hamiltonians.SymbolicHamiltonian(ham)
+    print(f"Hamiltoniana type {type(hamiltonian.matrix)}")
     return hamiltonian
 
 

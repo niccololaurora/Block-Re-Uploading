@@ -88,6 +88,12 @@ def initialize_data(digits, training_size, test_size, validation_size, resize):
     x_test = x_test / 255.0
     x_val = x_val / 255.0
 
+    # Normalize labels
+    if len(digits) == 2:
+        y_train = np.where(y_train == digits[0], 0, 1)
+        y_test = np.where(y_test == digits[0], 0, 1)
+        y_val = np.where(y_val == digits[0], 0, 1)
+
     training_data = (x_train, y_train)
     test_data = (x_test, y_test)
     validation_data = (x_val, y_val)
