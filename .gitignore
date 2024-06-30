@@ -13,6 +13,8 @@ comparison.txt
 profiling_stats.txt
 epochs.txt
 history.txt
+grad*
+summary.txt
 
 pred_a.pdf
 pred_b.pdf
