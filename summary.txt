@@ -1,7 +1,0 @@
-Qubits: 1
-Layers: 1
-Epochs: 4
-Classes: 2
-Loss: weighted_fidelity
-Learning Rate: 0.01
-Sizes: (T, V) = (20, 40)
