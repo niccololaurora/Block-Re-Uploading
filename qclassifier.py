@@ -4,6 +4,8 @@ import math
 
 from qibo import Circuit, gates, hamiltonians, set_backend
 from qibo.config import raise_error
+from qibo.symbols import Z, I
+from qibo.optimizers import optimize
 
 from data import initialize_data, pooling_creator, block_creator, shuffle
 from help_functions import fidelity, create_target, number_params, create_hamiltonian
@@ -44,6 +46,12 @@ class Qclassifier:
         self.loss = loss_2_classes
         self.learning_rate = learning_rate
         self.alpha = tf.Variable(tf.random.normal((nclasses,)), dtype=tf.float32)
+        self.options = {
+            "optimizer": "Adam",
+            "learning_rate": 0.01,
+            "nepochs": 1,
+            "nmessage": 5,
+        }
 
         # IMAGE
         self.train, self.test, self.validation = initialize_data(
@@ -66,7 +74,7 @@ class Qclassifier:
         )
         self.n_params = self.params_1layer * nlayers
         self.vparams = tf.Variable(tf.random.normal((self.n_params,)), dtype=tf.float32)
-        self.hamiltonian = create_hamiltonian(self.nqubits)
+        self.hamiltonian = self.create_hamiltonian()
         self.ansatz = self.circuit()
 
     def get_test_set(self):
@@ -77,6 +85,18 @@ class Qclassifier:
 
     def set_parameters(self, vparams):
         self.vparams = vparams
+
+    def create_hamiltonian(self):
+        """Method for building the hamiltonian used to evaluate expectation values.
+
+        Returns:
+            qibo.hamiltonians.SymbolicHamiltonian()
+        """
+        ham = I(0)
+        for k in range(self.nqubits):
+            ham *= Z(k)
+        hamiltonian = hamiltonians.SymbolicHamiltonian(ham)
+        return hamiltonian
 
     def vparams_circuit(self, x):
         """Method which calculates the parameters necessary to embed an image in the circuit.
@@ -321,6 +341,10 @@ class Qclassifier:
         Returns:
             loss (tf.Variable): average loss of the training batch.
         """
+
+        # Cercare come tracciare dove il tracker di tensorflow perde traccia
+        # e a causa di cio non calcola il gradiente
+
         if self.loss == "crossentropy":
             with tf.GradientTape() as tape:
                 loss = self.loss_crossentropy(x_batch, y_batch)
