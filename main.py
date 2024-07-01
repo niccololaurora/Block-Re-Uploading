@@ -17,14 +17,14 @@ def main():
     # ==============
     # Configuration
     # ==============
-    epochs = 4
+    epochs = 5
     learning_rate = 0.01
     loss = "crossentropy"
     digits = [5, 6]
     training_size = 10 * len(digits)
-    validation_size = 20 * len(digits)
-    test_size = 50 * len(digits)
-    batch_size = int(10 * len(digits) / 10)
+    validation_size = 10 * len(digits)
+    test_size = 10 * len(digits)
+    batch_size = 5
     resize = 8
     # layers = [1, 2, 3, 4, 5, 6]
     layers = [1]

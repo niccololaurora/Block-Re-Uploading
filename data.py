@@ -3,6 +3,25 @@ import tensorflow as tf
 from datetime import datetime
 
 
+def init_data(digits, training_size, resize):
+
+    (x_train, y_train), (_, _) = tf.keras.datasets.mnist.load_data()
+
+    # Select classes of interest
+    mask_train = np.isin(y_train, digits)
+    x_train, y_train = x_train[mask_train], y_train[mask_train]
+
+    # Resizing
+    x_train = tf.expand_dims(x_train, axis=-1)
+    x_train = tf.image.resize(x_train, [resize, resize])
+    x_train = x_train / 255.0
+    y_train = tf.convert_to_tensor(y_train, dtype=tf.float32)
+
+    training_data = (x_train, y_train)
+
+    return training_data, 0, 0
+
+
 def initialize_data(digits, training_size, test_size, validation_size, resize):
     """Method which prepares the validation, training and test datasets."""
 
@@ -94,6 +113,10 @@ def initialize_data(digits, training_size, test_size, validation_size, resize):
         y_test = np.where(y_test == digits[0], 0, 1)
         y_val = np.where(y_val == digits[0], 0, 1)
 
+    y_train = tf.convert_to_tensor(y_train, dtype=tf.float32)
+    y_test = tf.convert_to_tensor(y_test, dtype=tf.float32)
+    y_val = tf.convert_to_tensor(y_val, dtype=tf.float32)
+
     training_data = (x_train, y_train)
     test_data = (x_test, y_test)
     validation_data = (x_val, y_val)
@@ -118,6 +141,8 @@ def pooling_creator(blocks, nqubits, mode):
     if mode == "max":
         max_values = []
         for i in range(nqubits):
+            print(f"Block {i}")
+            print(f"Blocks {blocks}")
             block = tf.reshape(blocks[i], [-1])
             max_values.append(tf.reduce_max(block))
         return max_values

@@ -7,13 +7,12 @@ from qibo.config import raise_error
 from qibo.symbols import Z, I
 from qibo.optimizers import optimize
 
-from data import initialize_data, pooling_creator, block_creator, shuffle
+from data import initialize_data, pooling_creator, block_creator, shuffle, init_data
 from help_functions import (
     fidelity,
     create_target,
     number_params,
     create_hamiltonian,
-    BinaryCrossentropy,
 )
 
 
@@ -54,13 +53,21 @@ class Qclassifier:
         self.alpha = tf.Variable(tf.random.normal((nclasses,)), dtype=tf.float32)
 
         # IMAGE
-        self.train, self.test, self.validation = initialize_data(
-            digits,
-            self.training_size,
-            self.test_size,
-            self.validation_size,
-            resize,
-        )
+        if loss_2_classes == "crossentropy-gradients":
+            self.train, self.test, self.validation = init_data(
+                digits,
+                self.training_size,
+                resize,
+            )
+        else:
+            self.train, self.test, self.validation = initialize_data(
+                digits,
+                self.training_size,
+                self.test_size,
+                self.validation_size,
+                resize,
+            )
+
         self.block_width = block_width
         self.block_height = block_height
 
@@ -77,20 +84,23 @@ class Qclassifier:
         self.hamiltonian = self.create_hamiltonian()
         self.ansatz = self.circuit()
 
-    def trainability(self, images, labels):
+    def trainability(self, image, label):
+
         with tf.GradientTape() as tape:
-            for i in range(2):
-                expectation_value, _ = self.circuit_output(image)
-                output = (expectation_value + 1) / 2
-            print(f"Output {output}")
-            print(f"Label {label}")
+            exp, _ = self.circuit_output(image)
+            output = (exp + 1) / 2
+
+            # Cast float64 --> float32
+            output = tf.cast(output, dtype=tf.float32)
+
+            # Reshape per fare reduction
+            output = tf.reshape(output, (1, 1))
+            label = tf.reshape(label, (1, 1))
+
             loss = tf.keras.losses.BinaryCrossentropy()(label, output)
-
         grads = tape.gradient(loss, self.vparams)
-        grads = tf.math.real(grads)
-        grads = tf.abs(grads)
 
-        return grads
+        return grads, loss
 
     def get_test_set(self):
         return self.test
@@ -361,7 +371,6 @@ class Qclassifier:
 
         # Cercare come tracciare dove il tracker di tensorflow perde traccia
         # e a causa di cio non calcola il gradiente
-
         if self.loss == "crossentropy":
             with tf.GradientTape() as tape:
                 loss = self.loss_crossentropy(x_batch, y_batch)
