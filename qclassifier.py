@@ -46,12 +46,6 @@ class Qclassifier:
         self.loss = loss_2_classes
         self.learning_rate = learning_rate
         self.alpha = tf.Variable(tf.random.normal((nclasses,)), dtype=tf.float32)
-        self.options = {
-            "optimizer": "Adam",
-            "learning_rate": 0.01,
-            "nepochs": 1,
-            "nmessage": 5,
-        }
 
         # IMAGE
         self.train, self.test, self.validation = initialize_data(
@@ -295,7 +289,7 @@ class Qclassifier:
 
     def loss_crossentropy(self, x_batch, y_batch):
 
-        outputs = np.zeros(self.batch_size)
+        outputs = []
         for i in range(self.batch_size):
             if i > len(x_batch):
                 raise_error(
@@ -304,11 +298,10 @@ class Qclassifier:
                 )
 
             expectation_value, _ = self.circuit_output(x_batch[i])
-            output = (expectation_value + 1) / 2
-            outputs[i] = output
+            outputs.append((expectation_value + 1) / 2)
 
+        outputs = tf.convert_to_tensor(outputs, dtype=tf.float32)
         loss = tf.keras.losses.BinaryCrossentropy()(y_batch, outputs)
-        print(f"Loss {loss}")
 
         return loss
 
@@ -348,7 +341,7 @@ class Qclassifier:
         if self.loss == "crossentropy":
             with tf.GradientTape() as tape:
                 loss = self.loss_crossentropy(x_batch, y_batch)
-                print(f"Loss value (GradientTape) {loss}")
+                print(f"Loss: {loss}")
             grads = tape.gradient(loss, self.vparams)
 
             with open("grad_cross.txt", "a") as file:
