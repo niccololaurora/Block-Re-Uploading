@@ -49,6 +49,7 @@ def plot_sphere(qubit, layers, labels, label_states, final_states_b, final_state
 
     # Sphere before training
     sfera = Bloch()
+    labels = np.array(labels, dtype=int)
     for x, y in zip(final_states_b, labels):
         sfera.add_state(x, "point", color[y])
 

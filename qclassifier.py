@@ -67,6 +67,7 @@ class Qclassifier:
                 self.validation_size,
                 resize,
             )
+            print(self.train[1][:10])
 
         self.block_width = block_width
         self.block_height = block_height
@@ -148,10 +149,8 @@ class Qclassifier:
             # Encoding params
             for j in range(self.nqubits):
                 for i in range(self.block_width * self.block_height):
-                    # print(f"i {i}")
-                    # print(f"Before {blocks[j][i]}")
+
                     value = blocks[j][i]
-                    # print(f"After {value}")
                     angle = (
                         self.vparams[nlayer * self.params_1layer + i * 2] * value
                         + self.vparams[nlayer * self.params_1layer + (i * 2 + 1)]

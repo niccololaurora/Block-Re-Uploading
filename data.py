@@ -141,8 +141,6 @@ def pooling_creator(blocks, nqubits, mode):
     if mode == "max":
         max_values = []
         for i in range(nqubits):
-            print(f"Block {i}")
-            print(f"Blocks {blocks}")
             block = tf.reshape(blocks[i], [-1])
             max_values.append(tf.reduce_max(block))
         return max_values

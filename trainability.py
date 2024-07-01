@@ -54,7 +54,7 @@ for i in range(n_models):
     grads, loss = qclass.trainability(training[0][0], training[1][0])
 
     print(f"Loss {loss}")
-    print(f"Grads {grads}")
+    print(f"Grads {grads[:10]}")
 
     name_file = f"gradients_M{i}" + ".npy"
     np.save(
