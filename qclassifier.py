@@ -8,7 +8,13 @@ from qibo.symbols import Z, I
 from qibo.optimizers import optimize
 
 from data import initialize_data, pooling_creator, block_creator, shuffle
-from help_functions import fidelity, create_target, number_params, create_hamiltonian
+from help_functions import (
+    fidelity,
+    create_target,
+    number_params,
+    create_hamiltonian,
+    BinaryCrossentropy,
+)
 
 
 class Qclassifier:
@@ -71,11 +77,29 @@ class Qclassifier:
         self.hamiltonian = self.create_hamiltonian()
         self.ansatz = self.circuit()
 
+    def trainability(self, images, labels):
+        with tf.GradientTape() as tape:
+            for i in range(2):
+                expectation_value, _ = self.circuit_output(image)
+                output = (expectation_value + 1) / 2
+            print(f"Output {output}")
+            print(f"Label {label}")
+            loss = tf.keras.losses.BinaryCrossentropy()(label, output)
+
+        grads = tape.gradient(loss, self.vparams)
+        grads = tf.math.real(grads)
+        grads = tf.abs(grads)
+
+        return grads
+
     def get_test_set(self):
         return self.test
 
     def get_val_set(self):
         return self.validation
+
+    def get_train_set(self):
+        return self.train
 
     def set_parameters(self, vparams):
         self.vparams = vparams
