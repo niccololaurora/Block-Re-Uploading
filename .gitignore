@@ -5,6 +5,7 @@ __pycache__/
 
 /statistics/
 /plots/
+/trainability/
 
 history_no_tf.txt
 history_tf.txt
@@ -18,6 +19,7 @@ grad_cross.txt
 grad_w_fid.txt
 grad_fid.txt
 summary.txt
+file*
 
 pred_a.pdf
 pred_b.pdf
