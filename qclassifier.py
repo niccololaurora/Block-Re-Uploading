@@ -83,7 +83,7 @@ class Qclassifier:
         )
         self.n_params = self.params_1layer * nlayers
         self.vparams = tf.Variable(tf.random.normal((self.n_params,)), dtype=tf.float32)
-        self.hamiltonian = self.create_hamiltonian()
+        self.hamiltonian = create_hamiltonian(self.nqubits, local=False)
         self.ansatz = self.circuit()
 
     def get_vparams(self):
@@ -100,18 +100,6 @@ class Qclassifier:
 
     def set_parameters(self, vparams):
         self.vparams = vparams
-
-    def create_hamiltonian(self):
-        """Method for building the hamiltonian used to evaluate expectation values.
-
-        Returns:
-            qibo.hamiltonians.SymbolicHamiltonian()
-        """
-        ham = I(0)
-        for k in range(self.nqubits):
-            ham *= Z(k)
-        hamiltonian = hamiltonians.SymbolicHamiltonian(ham)
-        return hamiltonian
 
     def vparams_circuit(self, x):
         """Method which calculates the parameters necessary to embed an image in the circuit.

@@ -187,17 +187,23 @@ def cartesian_to_spherical(x, y, z):
     return theta, phi
 
 
-def create_hamiltonian(nqubits):
+def create_hamiltonian(nqubits, local=False):
     """Method for building the hamiltonian used to evaluate expectation values.
 
     Returns:
         qibo.hamiltonians.SymbolicHamiltonian()
     """
-    ham = I(0)
-    for k in range(nqubits):
-        ham *= Z(k)
-    hamiltonian = hamiltonians.SymbolicHamiltonian(ham)
-    return hamiltonian
+
+    if local:
+        ham = I(0)
+        for k in range(nqubits):
+            ham *= Z(k)
+        hamiltonian = hamiltonians.SymbolicHamiltonian(ham)
+        return hamiltonian
+    else:
+        ham = Z(nqubits - 1)
+        hamiltonian = hamiltonians.SymbolicHamiltonian(ham)
+        return hamiltonian
 
 
 def fidelity(state1, state2):
