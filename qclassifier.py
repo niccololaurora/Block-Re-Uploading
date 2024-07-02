@@ -170,8 +170,6 @@ class Qclassifier:
         c = Circuit(self.nqubits)
         for j in range(self.nqubits):
             sizes = block_sizes(self.resize, self.block_width, self.block_height)
-            print(f"Sizes {sizes}")
-            print(f"Number of blocks {len(sizes)}")
             for i in range(sizes[j]):
                 if i % 3 == 1:
                     c.add(gates.RZ(j, theta=0))
@@ -199,11 +197,57 @@ class Qclassifier:
         """
 
         c = Circuit(self.nqubits)
-        for q in range(0, self.nqubits - 1, 2):
-            c.add(gates.CNOT(q, q + 1))
-        for q in range(1, self.nqubits - 2, 2):
-            c.add(gates.CNOT(q, q + 1))
-        c.add(gates.CNOT(self.nqubits - 1, 0))
+        if self.nqubits == 2:
+            c.add(gates.CZ(0, 1))
+        elif self.nqubits == 4:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 2))
+            c.add(gates.CZ(1, 3))
+            c.add(gates.CZ(2, 3))
+        elif self.nqubits == 6:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 3))
+            c.add(gates.CZ(1, 2))
+            c.add(gates.CZ(1, 4))
+            c.add(gates.CZ(2, 5))
+            c.add(gates.CZ(3, 4))
+            c.add(gates.CZ(4, 5))
+        elif self.nqubits == 8:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 4))
+            c.add(gates.CZ(1, 2))
+            c.add(gates.CZ(1, 5))
+            c.add(gates.CZ(2, 3))
+            c.add(gates.CZ(2, 6))
+            c.add(gates.CZ(3, 7))
+            c.add(gates.CZ(4, 5))
+            c.add(gates.CZ(5, 6))
+            c.add(gates.CZ(6, 7))
+        elif self.nqubits == 16:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 4))
+            c.add(gates.CZ(1, 2))
+            c.add(gates.CZ(1, 5))
+            c.add(gates.CZ(2, 3))
+            c.add(gates.CZ(2, 6))
+            c.add(gates.CZ(3, 7))
+            c.add(gates.CZ(4, 5))
+            c.add(gates.CZ(4, 8))
+            c.add(gates.CZ(5, 6))
+            c.add(gates.CZ(5, 9))
+            c.add(gates.CZ(6, 7))
+            c.add(gates.CZ(6, 10))
+            c.add(gates.CZ(7, 11))
+            c.add(gates.CZ(8, 9))
+            c.add(gates.CZ(8, 12))
+            c.add(gates.CZ(9, 10))
+            c.add(gates.CZ(9, 13))
+            c.add(gates.CZ(10, 11))
+            c.add(gates.CZ(10, 14))
+            c.add(gates.CZ(11, 15))
+            c.add(gates.CZ(12, 13))
+            c.add(gates.CZ(13, 14))
+            c.add(gates.CZ(14, 15))
         return c
 
     def circuit(self):
