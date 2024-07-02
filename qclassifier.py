@@ -357,6 +357,7 @@ class Qclassifier:
 
             loss = tf.keras.losses.BinaryCrossentropy()(label, output)
         grads = tape.gradient(loss, self.vparams)
+        grads = tf.math.abs(grads)
 
         return grads, loss
 
