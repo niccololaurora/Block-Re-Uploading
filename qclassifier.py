@@ -13,6 +13,7 @@ from help_functions import (
     create_target,
     number_params,
     create_hamiltonian,
+    block_sizes,
 )
 
 
@@ -53,6 +54,7 @@ class Qclassifier:
         self.alpha = tf.Variable(tf.random.normal((nclasses,)), dtype=tf.float32)
 
         # IMAGE
+        self.resize = resize
         if loss_2_classes == "crossentropy-gradients":
             self.train, self.test, self.validation = init_data(
                 digits,
@@ -67,7 +69,6 @@ class Qclassifier:
                 self.validation_size,
                 resize,
             )
-            print(self.train[1][:10])
 
         self.block_width = block_width
         self.block_height = block_height
@@ -76,7 +77,7 @@ class Qclassifier:
         self.nqubits = nqubits
         self.nlayers = nlayers
         self.pooling = pooling
-        self.n_embed_params = 2 * self.block_width * self.block_height * self.nqubits
+        self.n_embed_params = 2 * resize**2
         self.params_1layer = number_params(
             self.n_embed_params, self.nqubits, self.pooling
         )
@@ -85,23 +86,8 @@ class Qclassifier:
         self.hamiltonian = self.create_hamiltonian()
         self.ansatz = self.circuit()
 
-    def trainability(self, image, label):
-
-        with tf.GradientTape() as tape:
-            exp, _ = self.circuit_output(image)
-            output = (exp + 1) / 2
-
-            # Cast float64 --> float32
-            output = tf.cast(output, dtype=tf.float32)
-
-            # Reshape per fare reduction
-            output = tf.reshape(output, (1, 1))
-            label = tf.reshape(label, (1, 1))
-
-            loss = tf.keras.losses.BinaryCrossentropy()(label, output)
-        grads = tape.gradient(loss, self.vparams)
-
-        return grads, loss
+    def get_vparams(self):
+        return self.vparams
 
     def get_test_set(self):
         return self.test
@@ -136,20 +122,20 @@ class Qclassifier:
         Returns:
             A list of parameters.
         """
-
-        # Embedding angles
         blocks = block_creator(x, self.block_height, self.block_width)
-
-        # Pooling angles
         pooling_values = pooling_creator(blocks, self.nqubits, self.pooling)
+
+        # Dimensioni dei blocch: necessario quando ho blocchi di forme diverse
+        sizes = block_sizes(self.resize, self.block_width, self.block_height)
 
         angles = []
         for nlayer in range(self.nlayers):
 
             # Encoding params
             for j in range(self.nqubits):
-                for i in range(self.block_width * self.block_height):
 
+                for i in range(sizes[j]):
+                    print(f"Lunghezza blocco {len(blocks[j])}")
                     value = blocks[j][i]
                     angle = (
                         self.vparams[nlayer * self.params_1layer + i * 2] * value
@@ -184,7 +170,8 @@ class Qclassifier:
         """
         c = Circuit(self.nqubits)
         for j in range(self.nqubits):
-            for i in range(self.block_width * self.block_height):
+            sizes = block_sizes(self.resize, self.block_width, self.block_height)
+            for i in range(sizes[j]):
                 if i % 3 == 1:
                     c.add(gates.RZ(j, theta=0))
                 else:
@@ -353,6 +340,24 @@ class Qclassifier:
             cf += 1 - fidelity(pred_state, true_state) ** 2
 
         return cf
+
+    def trainability(self, image, label):
+
+        with tf.GradientTape() as tape:
+            exp, _ = self.circuit_output(image)
+            output = (exp + 1) / 2
+
+            # Cast float64 --> float32
+            output = tf.cast(output, dtype=tf.float32)
+
+            # Reshape per fare reduction
+            output = tf.reshape(output, (1, 1))
+            label = tf.reshape(label, (1, 1))
+
+            loss = tf.keras.losses.BinaryCrossentropy()(label, output)
+        grads = tape.gradient(loss, self.vparams)
+
+        return grads, loss
 
     # @tf.function
     def train_step(self, x_batch, y_batch, optimizer):

@@ -215,3 +215,19 @@ def number_params(n_embed_params, nqubits, pooling):
         return 2 * nqubits + n_embed_params
     else:
         return n_embed_params
+
+
+def block_sizes(resize, width, height):
+    sizes = []
+
+    full_block = resize // width
+    broken_block_width = resize % width
+
+    for i in range(full_block):
+        sizes.append(width * height)
+    sizes.append(broken_block_width * height)
+    for i in range(full_block):
+        sizes.append(width * height)
+    sizes.append(broken_block_width * height)
+
+    return sizes
