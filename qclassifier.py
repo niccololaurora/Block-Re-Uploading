@@ -133,7 +133,6 @@ class Qclassifier:
 
             # Encoding params
             for j in range(self.nqubits):
-
                 for i in range(sizes[j]):
                     print(f"Lunghezza blocco {len(blocks[j])}")
                     value = blocks[j][i]
@@ -171,6 +170,8 @@ class Qclassifier:
         c = Circuit(self.nqubits)
         for j in range(self.nqubits):
             sizes = block_sizes(self.resize, self.block_width, self.block_height)
+            print(f"Sizes {sizes}")
+            print(f"Number of blocks {len(sizes)}")
             for i in range(sizes[j]):
                 if i % 3 == 1:
                     c.add(gates.RZ(j, theta=0))

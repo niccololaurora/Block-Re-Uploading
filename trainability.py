@@ -14,7 +14,6 @@ block_sizes = [[8, 8], [4, 8], [4, 4], [3, 4], [2, 4], [2, 2]]
 training_size = 10
 digits = [0, 1]
 
-
 # Fix number of qubits
 nqubits = [1, 2, 4, 6, 8, 16]
 
