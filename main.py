@@ -17,18 +17,18 @@ def main():
     # ==============
     # Configuration
     # ==============
-    epochs = 100
-    learning_rate = 0.01
+    epochs = 20
+    learning_rate = 0.001
     loss = "crossentropy"
-    digits = [5, 6]
+    digits = [0, 1]
     training_size = 200 * len(digits)
-    validation_size = 200 * len(digits)
-    test_size = 200 * len(digits)
+    validation_size = 50 * len(digits)
+    test_size = 50 * len(digits)
     batch_size = 40
     resize = 8
     # layers = [1, 2, 3, 4, 5, 6]
-    layers = [2]
-    seed = 1
+    layers = [1]
+    seed = 0
     # block_sizes = [[2, 4], [3, 4], [4, 4], [4, 8], [8, 8]]
     block_sizes = [[resize, resize]]
     # nqubits = [8, 6, 4, 2, 1]

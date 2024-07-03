@@ -10,6 +10,8 @@ from qclassifier import Qclassifier
 # Fix number of gates
 layers = [1, 5, 10, 20, 30, 40]
 resize = 8
+
+# Image details
 block_sizes = [[8, 8], [4, 8], [4, 4], [3, 4], [2, 4], [2, 2]]
 training_size = 10
 digits = [0, 1]
