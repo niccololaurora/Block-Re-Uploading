@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import math
+import os
 
 from qibo import Circuit, gates, hamiltonians, set_backend
 from qibo.config import raise_error
@@ -82,9 +83,21 @@ class Qclassifier:
             self.n_embed_params, self.nqubits, self.pooling
         )
         self.n_params = self.params_1layer * nlayers
-        self.vparams = tf.Variable(tf.random.normal((self.n_params,)), dtype=tf.float32)
+        self.vparams = tf.Variable(
+            tf.random.uniform((self.n_params,)),
+            minval=-math.pi,
+            maxval=math.pi,
+            dtype=tf.float32,
+        )
         self.hamiltonian = create_hamiltonian(self.nqubits, local=False)
         self.ansatz = self.circuit()
+
+    def print_circuit(self):
+        if not os.path.exists("ansatz_draw"):
+            os.makedirs("ansatz_draw")
+        filename = f"ansatz_draw/ansatz_Q{self.nqubits}_L{self.nlayers}.txt"
+        with open(filename, "a") as file:
+            print(self.ansatz.draw(), file=file)
 
     def get_vparams(self):
         return self.vparams
@@ -122,7 +135,6 @@ class Qclassifier:
             # Encoding params
             for j in range(self.nqubits):
                 for i in range(sizes[j]):
-                    print(f"Lunghezza blocco {len(blocks[j])}")
                     value = blocks[j][i]
                     angle = (
                         self.vparams[nlayer * self.params_1layer + i * 2] * value
@@ -187,11 +199,26 @@ class Qclassifier:
         c = Circuit(self.nqubits)
         if self.nqubits == 2:
             c.add(gates.CZ(0, 1))
+
+        if self.nqubits == 3:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(1, 2))
+
         elif self.nqubits == 4:
             c.add(gates.CZ(0, 1))
             c.add(gates.CZ(0, 2))
             c.add(gates.CZ(1, 3))
             c.add(gates.CZ(2, 3))
+
+        elif self.nqubits == 5:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 3))
+            c.add(gates.CZ(1, 2))
+            c.add(gates.CZ(1, 3))
+            c.add(gates.CZ(1, 4))
+            c.add(gates.CZ(2, 4))
+            c.add(gates.CZ(3, 4))
+
         elif self.nqubits == 6:
             c.add(gates.CZ(0, 1))
             c.add(gates.CZ(0, 3))
@@ -200,6 +227,19 @@ class Qclassifier:
             c.add(gates.CZ(2, 5))
             c.add(gates.CZ(3, 4))
             c.add(gates.CZ(4, 5))
+
+        elif self.nqubits == 7:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 4))
+            c.add(gates.CZ(1, 2))
+            c.add(gates.CZ(1, 4))
+            c.add(gates.CZ(1, 5))
+            c.add(gates.CZ(2, 3))
+            c.add(gates.CZ(2, 5))
+            c.add(gates.CZ(3, 6))
+            c.add(gates.CZ(4, 5))
+            c.add(gates.CZ(5, 6))
+
         elif self.nqubits == 8:
             c.add(gates.CZ(0, 1))
             c.add(gates.CZ(0, 4))
@@ -211,6 +251,143 @@ class Qclassifier:
             c.add(gates.CZ(4, 5))
             c.add(gates.CZ(5, 6))
             c.add(gates.CZ(6, 7))
+
+        elif self.nqubits == 9:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 5))
+            c.add(gates.CZ(1, 2))
+            c.add(gates.CZ(1, 5))
+            c.add(gates.CZ(1, 6))
+            c.add(gates.CZ(2, 3))
+            c.add(gates.CZ(2, 6))
+            c.add(gates.CZ(2, 7))
+            c.add(gates.CZ(3, 4))
+            c.add(gates.CZ(3, 7))
+            c.add(gates.CZ(3, 8))
+            c.add(gates.CZ(4, 8))
+            c.add(gates.CZ(5, 6))
+            c.add(gates.CZ(6, 7))
+            c.add(gates.CZ(7, 8))
+
+        elif self.nqubits == 10:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 5))
+            c.add(gates.CZ(1, 2))
+            c.add(gates.CZ(1, 6))
+            c.add(gates.CZ(2, 3))
+            c.add(gates.CZ(2, 7))
+            c.add(gates.CZ(3, 4))
+            c.add(gates.CZ(3, 8))
+            c.add(gates.CZ(4, 9))
+            c.add(gates.CZ(5, 6))
+            c.add(gates.CZ(6, 7))
+            c.add(gates.CZ(7, 8))
+            c.add(gates.CZ(8, 9))
+
+        elif self.nqubits == 11:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 6))
+            c.add(gates.CZ(1, 2))
+            c.add(gates.CZ(1, 7))
+            c.add(gates.CZ(2, 3))
+            c.add(gates.CZ(2, 7))
+            c.add(gates.CZ(3, 4))
+            c.add(gates.CZ(3, 8))
+            c.add(gates.CZ(4, 5))
+            c.add(gates.CZ(4, 9))
+            c.add(gates.CZ(5, 10))
+            c.add(gates.CZ(6, 7))
+            c.add(gates.CZ(7, 8))
+            c.add(gates.CZ(8, 9))
+            c.add(gates.CZ(9, 10))
+
+        elif self.nqubits == 12:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 4))
+            c.add(gates.CZ(1, 2))
+            c.add(gates.CZ(1, 5))
+            c.add(gates.CZ(2, 3))
+            c.add(gates.CZ(2, 6))
+            c.add(gates.CZ(3, 7))
+            c.add(gates.CZ(4, 5))
+            c.add(gates.CZ(4, 8))
+            c.add(gates.CZ(5, 6))
+            c.add(gates.CZ(5, 9))
+            c.add(gates.CZ(6, 7))
+            c.add(gates.CZ(6, 10))
+            c.add(gates.CZ(7, 11))
+            c.add(gates.CZ(8, 9))
+            c.add(gates.CZ(9, 10))
+            c.add(gates.CZ(10, 11))
+
+        elif self.nqubits == 13:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 5))
+            c.add(gates.CZ(1, 2))
+            c.add(gates.CZ(1, 5))
+            c.add(gates.CZ(2, 3))
+            c.add(gates.CZ(2, 6))
+            c.add(gates.CZ(3, 4))
+            c.add(gates.CZ(3, 7))
+            c.add(gates.CZ(4, 8))
+            c.add(gates.CZ(5, 6))
+            c.add(gates.CZ(5, 9))
+            c.add(gates.CZ(6, 7))
+            c.add(gates.CZ(6, 10))
+            c.add(gates.CZ(7, 8))
+            c.add(gates.CZ(7, 11))
+            c.add(gates.CZ(8, 12))
+            c.add(gates.CZ(9, 10))
+            c.add(gates.CZ(10, 11))
+            c.add(gates.CZ(11, 12))
+
+        elif self.nqubits == 14:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 5))
+            c.add(gates.CZ(1, 2))
+            c.add(gates.CZ(1, 6))
+            c.add(gates.CZ(2, 3))
+            c.add(gates.CZ(2, 7))
+            c.add(gates.CZ(3, 4))
+            c.add(gates.CZ(3, 8))
+            c.add(gates.CZ(4, 9))
+            c.add(gates.CZ(5, 6))
+            c.add(gates.CZ(5, 10))
+            c.add(gates.CZ(6, 7))
+            c.add(gates.CZ(6, 10))
+            c.add(gates.CZ(7, 8))
+            c.add(gates.CZ(7, 11))
+            c.add(gates.CZ(8, 9))
+            c.add(gates.CZ(8, 12))
+            c.add(gates.CZ(9, 13))
+            c.add(gates.CZ(10, 11))
+            c.add(gates.CZ(11, 12))
+            c.add(gates.CZ(12, 13))
+
+        elif self.nqubits == 15:
+            c.add(gates.CZ(0, 1))
+            c.add(gates.CZ(0, 5))
+            c.add(gates.CZ(1, 2))
+            c.add(gates.CZ(1, 6))
+            c.add(gates.CZ(2, 3))
+            c.add(gates.CZ(2, 7))
+            c.add(gates.CZ(3, 4))
+            c.add(gates.CZ(3, 8))
+            c.add(gates.CZ(4, 9))
+            c.add(gates.CZ(5, 6))
+            c.add(gates.CZ(5, 10))
+            c.add(gates.CZ(6, 7))
+            c.add(gates.CZ(6, 11))
+            c.add(gates.CZ(7, 8))
+            c.add(gates.CZ(7, 12))
+            c.add(gates.CZ(8, 9))
+            c.add(gates.CZ(8, 13))
+            c.add(gates.CZ(9, 14))
+            c.add(gates.CZ(10, 11))
+            c.add(gates.CZ(11, 12))
+            c.add(gates.CZ(12, 13))
+            c.add(gates.CZ(13, 14))
+
         elif self.nqubits == 16:
             c.add(gates.CZ(0, 1))
             c.add(gates.CZ(0, 4))
@@ -236,6 +413,10 @@ class Qclassifier:
             c.add(gates.CZ(12, 13))
             c.add(gates.CZ(13, 14))
             c.add(gates.CZ(14, 15))
+        else:
+            raise_error(
+                ValueError, "Number of qubits not supported by this architecture"
+            )
         return c
 
     def circuit(self):
