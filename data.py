@@ -177,19 +177,20 @@ def block_creator(image, block_height, block_width):
 
 def create_blocks(image, block_width, block_height, positions):
 
-    print(image)
     blocks = []
 
     w = 0
     h = 0
     r = 0
     c = 0
+    row_point = 0
 
     for i, (row, column) in enumerate(positions):
 
         if r != row:
             h = block_height[i - 1]
             r = row
+            row_point = 0
 
         if c != column:
             c = column
@@ -199,12 +200,16 @@ def create_blocks(image, block_width, block_height, positions):
         print(f"Colomn {column}")
         print(f"Sizes {block_width[i]}, {block_height[i]}")
         print(
-            f"Coordinate [{row * h} : {row * h + block_height[i]}][{column * w} : {column * w + block_width[i]}]"
+            f"Coordinate [{row * h} : {row * h + block_height[i]}][{row_point} : {row_point + block_width[i]}]"
         )
+
         block = image[
             row * h : row * h + block_height[i],
-            column * w : column * w + block_width[i],
+            row_point : row_point + block_width[i],
         ]
+
+        if r == row:
+            row_point += block_width[i]
 
         block = tf.reshape(block, [-1])
         print("=" * 60)

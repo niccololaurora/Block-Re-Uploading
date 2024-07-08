@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 df_combined = pd.DataFrame()
 params_list = []
 nqubits = [1, 2, 4, 6, 8, 16]
-layers = [1, 5, 10, 20, 30, 40]
+layers = [40, 60, 80, 100]
 
 
 # Carica i gradienti per i modelli M0, M1, ..., M9

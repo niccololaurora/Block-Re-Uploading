@@ -1,32 +1,41 @@
 import os
 import tensorflow as tf
 import numpy as np
+import argparse
 
 from pathlib import Path
 
 from qclassifier import Qclassifier
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--layer", type=int, required=True, help="Number of layers")
+args = parser.parse_args()
+
 # Fix number of gates
-layers = [1, 5, 10, 20, 30, 40]
+# layers = [1, 5, 10, 15, 20, 25, 40, 60, 80, 100]
+layers = args.layer
 resize = 8
 
 # Image details
-block_sizes = [[8, 8], [4, 8], [4, 4], [3, 4], [2, 4], [2, 2]]
-training_size = 10
+block_width = [3, 3, 2, 4, 4]
+block_height = [4, 4, 4, 4, 4]
+positions = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
+
+training_size = 1
 digits = [0, 1]
 
 # Fix number of qubits
-nqubits = [1, 2, 4, 6, 8, 16]
+nqubits = 12
 
 # Sample image and parameters
-n_models = 10
-for j in range(len(nqubits)):
+n_models = 50
+for j in range(1):
     print("=" * 60)
-    print(f"Number of qubits: {nqubits[j]}")
-    for k in range(len(layers)):
+    print(f"Number of qubits: {nqubits}")
+    for k in range(1):
         print("*" * 30)
-        print(f"Layers {layers[k]}")
+        print(f"Layers {layers}")
         for i in range(n_models):
             print(f"Model {i}")
 
@@ -43,9 +52,9 @@ for j in range(len(nqubits)):
                 test_size=10,
                 nepochs=1,
                 batch_size=training_size,
-                nlayers=layers[k],
+                nlayers=layers,
                 seed_value=seed_value,
-                nqubits=nqubits[j],
+                nqubits=nqubits,
                 resize=resize,
                 nclasses=len(digits),
                 pooling="max",
@@ -56,16 +65,13 @@ for j in range(len(nqubits)):
                 digits=digits,
             )
 
+            qclass.print_circuit()
+
             training = qclass.get_train_set()
             vparams = qclass.get_vparams()
             grads, loss = qclass.trainability(training[0][0], training[1][0])
 
-            print(f"Seed {seed_value}")
-            print(f"Params {vparams[:4]}")
-            print(f"Loss {loss}")
-            print(f"Grads {grads[:4]}")
-
-            name_file = f"gradients_Q{nqubits[j]}_L{layers[k]}_M{i}" + ".npz"
+            name_file = f"gradients_Q{nqubits}_L{layers}_M{i}" + ".npz"
             np.savez(
                 file_path / name_file,
                 grads=grads,

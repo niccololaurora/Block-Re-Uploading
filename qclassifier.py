@@ -37,6 +37,7 @@ class Qclassifier:
         resize,
         learning_rate,
         digits,
+        positions,
     ):
 
         np.random.seed(seed_value)
@@ -70,7 +71,7 @@ class Qclassifier:
                 self.validation_size,
                 resize,
             )
-
+        self.positions = positions
         self.block_width = block_width
         self.block_height = block_height
 
@@ -90,7 +91,7 @@ class Qclassifier:
             dtype=tf.float32,
         )
         self.hamiltonian = create_hamiltonian(self.nqubits, local=False)
-        self.ansatz = self.circuit()
+        # self.ansatz = self.circuit()
 
     def print_circuit(self):
         if not os.path.exists("ansatz_draw"):
@@ -123,7 +124,7 @@ class Qclassifier:
         Returns:
             A list of parameters.
         """
-        blocks = block_creator(x, self.block_height, self.block_width)
+        blocks = create_blocks(x, self.block_width, self.block_height, self.positions)
         pooling_values = pooling_creator(blocks, self.nqubits, self.pooling)
 
         # Dimensioni dei blocch: necessario quando ho blocchi di forme diverse
