@@ -226,79 +226,8 @@ def number_params(n_embed_params, nqubits, pooling):
 def block_sizes(resize, width, height):
     sizes = []
 
-    rows = resize // height
-    columns = resize // width
-    broken_block_width = resize % width
-    broken_block_height = resize % height
-
-    for j in range(rows):
-        for i in range(columns):
-            sizes.append(width * height)
-        if broken_block_width * height != 0:
-            sizes.append(broken_block_width * height)
-
-    if broken_block_height * width != 0:
-        for i in range(columns):
-            sizes.append(width * broken_block_height)
-        if broken_block_width * broken_block_height != 0:
-            sizes.append(broken_block_width * broken_block_height)
+    for w, h in zip(width, height):
+        size = w * h
+        sizes.append(size)
 
     return sizes
-
-
-def block_sizes_2(resize, nqubits, width=None, height=None):
-    sizes = []
-
-    if (
-        (nqubits == 1)
-        or (nqubits == 2)
-        or (nqubits == 3)
-        or (nqubits == 4)
-        or (nqubits == 6)
-        or (nqubits == 8)
-        or (nqubits == 9)
-        or (nqubits == 12)
-        or (nqubits == 16)
-    ):
-        rows = resize // height
-        columns = resize // width
-        broken_block_width = resize % width
-        broken_block_height = resize % height
-
-        for j in range(rows):
-            for i in range(columns):
-                sizes.append(width * height)
-            if broken_block_width * height != 0:
-                sizes.append(broken_block_width * height)
-
-        if broken_block_height * width != 0:
-            for i in range(columns):
-                sizes.append(width * broken_block_height)
-            if broken_block_width * broken_block_height != 0:
-                sizes.append(broken_block_width * broken_block_height)
-
-        return sizes
-
-    if nqubits == 5:
-        return [12, 12, 8, 16, 16]
-
-    if nqubits == 7:
-        return [8, 8, 8, 8, 12, 12, 8]
-
-    if nqubits == 10:
-        return [4, 8, 8, 8, 4, 4, 8, 8, 8, 4]
-
-    if nqubits == 11:
-        return [4, 8, 8, 8, 4, 8, 8, 8, 8]
-
-    if nqubits == 12:
-        return [6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4]
-
-    if nqubits == 13:
-        return [3, 3, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4]
-
-    if nqubits == 14:
-        return [3, 3, 6, 6, 6, 3, 3, 6, 6, 6, 4, 4, 4, 4]
-
-    if nqubits == 15:
-        return [3, 6, 6, 6, 3, 3, 6, 6, 6, 3, 2, 4, 4, 4, 2]
