@@ -121,6 +121,8 @@ def initialize_data(digits, training_size, test_size, validation_size, resize):
     test_data = (x_test, y_test)
     validation_data = (x_val, y_val)
 
+    print(training_data[0][0])
+
     return (
         training_data,
         test_data,
@@ -170,6 +172,46 @@ def block_creator(image, block_height, block_width):
             block = image[i : i + block_height, j : j + block_width]
             block = tf.reshape(block, [-1])
             blocks.append(block)
+    return blocks
+
+
+def create_blocks(image, block_width, block_height, positions):
+
+    print(image)
+    blocks = []
+
+    w = 0
+    h = 0
+    r = 0
+    c = 0
+
+    for i, (row, column) in enumerate(positions):
+
+        if r != row:
+            h = block_height[i - 1]
+            r = row
+
+        if c != column:
+            c = column
+            w = block_width[i - 1]
+
+        print(f"Row {row}")
+        print(f"Colomn {column}")
+        print(f"Sizes {block_width[i]}, {block_height[i]}")
+        print(
+            f"Coordinate [{row * h} : {row * h + block_height[i]}][{column * w} : {column * w + block_width[i]}]"
+        )
+        block = image[
+            row * h : row * h + block_height[i],
+            column * w : column * w + block_width[i],
+        ]
+
+        block = tf.reshape(block, [-1])
+        print("=" * 60)
+        print(block)
+        print("=" * 60)
+        blocks.append(block)
+
     return blocks
 
 
