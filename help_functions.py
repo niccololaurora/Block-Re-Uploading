@@ -205,6 +205,8 @@ def create_hamiltonian(nqubits, local=False):
     # Local hamiltonian
     else:
         ham = Z(0)
+        for k in range(nqubits):
+            ham *= I(k)
         hamiltonian = hamiltonians.SymbolicHamiltonian(ham)
         return hamiltonian
 
