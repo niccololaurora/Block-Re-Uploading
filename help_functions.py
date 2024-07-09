@@ -194,14 +194,14 @@ def create_hamiltonian(nqubits, local=False):
         qibo.hamiltonians.SymbolicHamiltonian()
     """
 
-    if local:
+    if local == False:
         ham = I(0)
         for k in range(nqubits):
             ham *= Z(k)
         hamiltonian = hamiltonians.SymbolicHamiltonian(ham)
         return hamiltonian
     else:
-        ham = Z(nqubits - 1)
+        ham = Z(0)
         hamiltonian = hamiltonians.SymbolicHamiltonian(ham)
         return hamiltonian
 

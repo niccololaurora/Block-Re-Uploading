@@ -38,6 +38,7 @@ class Qclassifier:
         learning_rate,
         digits,
         positions,
+        local,
     ):
 
         np.random.seed(seed_value)
@@ -83,8 +84,13 @@ class Qclassifier:
             maxval=math.pi,
             dtype=tf.float32,
         )
-        self.hamiltonian = create_hamiltonian(self.nqubits, local=False)
+        self.hamiltonian = create_hamiltonian(self.nqubits, local=local)
         self.ansatz = self.circuit()
+
+        if len(digits) != nclasses:
+            raise_error(
+                ValueError, "Number of digits and number of classes are different"
+            )
 
     def print_circuit(self):
         if not os.path.exists("ansatz_draw"):
@@ -527,7 +533,7 @@ class Qclassifier:
 
             expectation_value, _ = self.circuit_output(x_batch[i])
             outputs.append((expectation_value + 1) / 2)
-
+            print(f"Output: {(expectation_value + 1) / 2}")
         outputs = tf.convert_to_tensor(outputs, dtype=tf.float32)
         loss = tf.keras.losses.BinaryCrossentropy()(y_batch, outputs)
 
@@ -554,6 +560,7 @@ class Qclassifier:
         with tf.GradientTape() as tape:
             exp, _ = self.circuit_output(image)
             output = (exp + 1) / 2
+            print(f"Exp: {exp}, Output: {output}")
 
             # Cast float64 --> float32
             output = tf.cast(output, dtype=tf.float32)
