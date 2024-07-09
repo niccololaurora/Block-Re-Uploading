@@ -6,6 +6,7 @@ __pycache__/
 /statistics/
 /plots/
 /trainability/
+/ansatz_draw/
 
 history_no_tf.txt
 history_tf.txt
