@@ -8,7 +8,7 @@ from qibo.config import raise_error
 from qibo.symbols import Z, I
 from qibo.optimizers import optimize
 
-from data import initialize_data, pooling_creator, block_creator, shuffle, init_data
+from data import initialize_data, pooling_creator, create_blocks, shuffle
 from help_functions import (
     fidelity,
     create_target,
@@ -57,20 +57,13 @@ class Qclassifier:
 
         # IMAGE
         self.resize = resize
-        if loss_2_classes == "crossentropy-gradients":
-            self.train, self.test, self.validation = init_data(
-                digits,
-                self.training_size,
-                resize,
-            )
-        else:
-            self.train, self.test, self.validation = initialize_data(
-                digits,
-                self.training_size,
-                self.test_size,
-                self.validation_size,
-                resize,
-            )
+        self.train, self.test, self.validation = initialize_data(
+            digits,
+            self.training_size,
+            self.test_size,
+            self.validation_size,
+            resize,
+        )
         self.positions = positions
         self.block_width = block_width
         self.block_height = block_height
@@ -91,7 +84,7 @@ class Qclassifier:
             dtype=tf.float32,
         )
         self.hamiltonian = create_hamiltonian(self.nqubits, local=False)
-        # self.ansatz = self.circuit()
+        self.ansatz = self.circuit()
 
     def print_circuit(self):
         if not os.path.exists("ansatz_draw"):
