@@ -231,3 +231,55 @@ def block_sizes(resize, width, height):
         sizes.append(size)
 
     return sizes
+
+
+def blocks_details(nqubits):
+    if nqubits == 1:
+        block_width = [8]
+        block_height = [8]
+        positions = [
+            (0, 0),
+        ]
+        return block_width, block_height, positions
+    if nqubits == 2:
+        block_width = [4, 4]
+        block_height = [8, 8]
+        positions = [
+            (0, 0),
+            (0, 1),
+        ]
+        return block_width, block_height, positions
+    if nqubits == 3:
+        block_width = [3, 3, 2]
+        block_height = [8, 8, 8]
+        positions = [
+            (0, 0),
+            (0, 1),
+            (0, 2),
+        ]
+        return block_width, block_height, positions
+    if nqubits == 4:
+        block_width = [4, 4, 4, 4]
+        block_height = [4, 4, 4, 4]
+        positions = [
+            (0, 0),
+            (0, 1),
+            (1, 0),
+            (1, 1),
+        ]
+        return block_width, block_height, positions
+    if nqubits == 9:
+        block_width = [1, 2, 2, 2, 1, 2, 2, 2, 2]
+        block_height = [3, 3, 3, 3, 3, 3, 3, 3, 3]
+        positions = [
+            (0, 0),
+            (0, 1),
+            (0, 2),
+            (0, 3),
+            (0, 4),
+            (1, 0),
+            (1, 1),
+            (1, 2),
+            (1, 3),
+        ]
+        return block_width, block_height, positions
