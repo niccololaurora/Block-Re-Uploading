@@ -77,12 +77,15 @@ class Qclassifier:
         self.params_1layer = number_params(
             self.n_embed_params, self.nqubits, self.pooling
         )
+
         self.n_params = self.params_1layer * nlayers
         self.vparams = tf.Variable(
-            tf.random.uniform((self.n_params,)),
-            minval=-math.pi,
-            maxval=math.pi,
-            dtype=tf.float32,
+            tf.random.uniform(
+                (self.n_params,),
+                minval=-math.pi,
+                maxval=math.pi,
+                dtype=tf.float32,
+            )
         )
         self.hamiltonian = create_hamiltonian(self.nqubits, local=local)
         self.ansatz = self.circuit()
@@ -200,7 +203,7 @@ class Qclassifier:
         if self.nqubits == 2:
             c.add(gates.CZ(0, 1))
 
-        if self.nqubits == 3:
+        elif self.nqubits == 3:
             c.add(gates.CZ(0, 1))
             c.add(gates.CZ(1, 2))
 
@@ -493,10 +496,14 @@ class Qclassifier:
 
             # Prediction fid is the index corresponding to the highest fidelity
             # computed between the predicted state and the targets state
-            fids = []
-            for j in range(self.nclasses):
-                fids.append(fidelity(predicted_state, self.targets[j]))
-            label = tf.math.argmax(fids)
+            label = 0
+            if self.nqubits == 1:
+                # la fidelity tra lo stato predicted e lo stato target funziona solo nel
+                # caso di un qubit. Perché i target che ho implementato funzionano solo per un qubit.
+                fids = []
+                for j in range(self.nclasses):
+                    fids.append(fidelity(predicted_state, self.targets[j]))
+                label = tf.math.argmax(fids)
 
             # Append
             predictions_float.append(output)
@@ -674,12 +681,25 @@ class Qclassifier:
                     print(f"Parametri: {self.vparams[0:20]}", file=file)
 
             trained_params[epoch] = self.vparams
-
             history_train_loss[epoch] = loss
-            history_val_loss[epoch] = self.loss_fidelity(
-                self.validation[0], self.validation[1]
-            )
 
+            # VALIDATION LOSS
+            if self.loss == "crossentropy":
+                history_val_loss[epoch] = self.loss_crossentropy(
+                    self.validation[0], self.validation[1]
+                )
+
+            if self.loss == "fidelity":
+                history_val_loss[epoch] = self.loss_fidelity(
+                    self.validation[0], self.validation[1]
+                )
+
+            if self.loss == "weighted_fidelity":
+                history_val_loss[epoch] = self.loss_fidelity_weighted(
+                    self.validation[0], self.validation[1]
+                )
+
+            # VALIDATION AND TRAINING ACCURACY
             history_train_accuracy[epoch] = self.accuracy(self.train)
             history_val_accuracy[epoch] = self.accuracy(self.validation)
 
