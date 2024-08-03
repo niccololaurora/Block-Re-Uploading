@@ -80,12 +80,7 @@ class Qclassifier:
 
         self.n_params = self.params_1layer * nlayers
         self.vparams = tf.Variable(
-            tf.random.uniform(
-                (self.n_params,),
-                minval=-math.pi,
-                maxval=math.pi,
-                dtype=tf.float32,
-            )
+            tf.random.normal((self.n_params,), mean=1.0, stddev=1.0, dtype=tf.float32)
         )
         self.hamiltonian = create_hamiltonian(self.nqubits, local=local)
         self.ansatz = self.circuit()
@@ -512,9 +507,9 @@ class Qclassifier:
 
         return predictions_float, predictions_fids, predicted_states
 
-    def loss_fidelity_weighted(self, data, labels):
+    def loss_fidelity_weighted(self, data, labels, size):
         loss = 0.0
-        for i in range(self.batch_size):
+        for i in range(size):
             _, pred_state = self.circuit_output(data[i])
             for j in range(self.nclasses):
                 f_1 = fidelity(pred_state, tf.gather(self.targets, j)) ** 2
@@ -528,10 +523,10 @@ class Qclassifier:
                 loss += (tf.gather(self.alpha, j) * f_1 - f_2) ** 2
         return loss
 
-    def loss_crossentropy(self, x_batch, y_batch):
+    def loss_crossentropy(self, x_batch, y_batch, size):
 
         outputs = []
-        for i in range(self.batch_size):
+        for i in range(size):
             if i > len(x_batch):
                 raise_error(
                     ValueError,
@@ -546,9 +541,9 @@ class Qclassifier:
 
         return loss
 
-    def loss_fidelity(self, data, labels):
+    def loss_fidelity(self, data, labels, size):
         cf = 0.0
-        for i in range(self.batch_size):
+        for i in range(size):
             if i > len(data):
                 raise_error(
                     ValueError,
@@ -600,15 +595,9 @@ class Qclassifier:
         # e a causa di cio non calcola il gradiente
         if self.loss == "crossentropy":
             with tf.GradientTape() as tape:
-                loss = self.loss_crossentropy(x_batch, y_batch)
+                loss = self.loss_crossentropy(x_batch, y_batch, self.batch_size)
                 print(f"Loss: {loss}")
             grads = tape.gradient(loss, self.vparams)
-
-            with open("grad_cross.txt", "a") as file:
-                print("=" * 60, file=file)
-                print(f"Gradients {grads}", file=file)
-                print(f"Loss {loss}", file=file)
-
             grads = tf.math.real(grads)
             optimizer.apply_gradients(zip([grads], [self.vparams]))
 
@@ -616,33 +605,45 @@ class Qclassifier:
 
         if self.loss == "fidelity":
             with tf.GradientTape() as tape:
-                loss = self.loss_fidelity(x_batch, y_batch)
+                loss = self.loss_fidelity(x_batch, y_batch, self.batch_size)
             grads = tape.gradient(loss, self.vparams)
             grads = tf.math.real(grads)
-
-            with open("grad_fid.txt", "a") as file:
-                print("=" * 60, file=file)
-                print(f"Gradients {grads}", file=file)
-                print(f"Loss {loss}", file=file)
-
             optimizer.apply_gradients(zip([grads], [self.vparams]))
             return loss
 
         if self.loss == "weighted_fidelity":
             with tf.GradientTape() as tape:
-                loss = self.loss_fidelity_weighted(x_batch, y_batch)
+                loss = self.loss_fidelity_weighted(x_batch, y_batch, self.batch_size)
             trainable_variables = [self.vparams, self.alpha]
             grads = tape.gradient(loss, trainable_variables)
             grads = [tf.math.real(g) for g in grads]
-
-            with open("grad_w_fid.txt", "a") as file:
-                print("=" * 60, file=file)
-                print(f"Gradients {grads}", file=file)
-                print(f"Loss {loss}", file=file)
-
             optimizer.apply_gradients(zip(grads, trainable_variables))
 
             return loss
+
+    def val_step(self):
+
+        history_val_loss = 0
+        history_val_accuracy = 0
+
+        if self.loss == "crossentropy":
+            history_val_loss = self.loss_crossentropy(
+                self.validation[0], self.validation[1], self.validation_size
+            )
+
+        if self.loss == "fidelity":
+            history_val_loss = self.loss_fidelity(
+                self.validation[0], self.validation[1], self.validation_size
+            )
+
+        if self.loss == "weighted_fidelity":
+            history_val_loss = self.loss_fidelity_weighted(
+                self.validation[0], self.validation[1], self.validation_size
+            )
+
+        history_val_accuracy = self.accuracy(self.validation)
+
+        return history_val_loss, history_val_accuracy
 
     def training_loop(self):
         """Method to train the classifier.
@@ -655,8 +656,8 @@ class Qclassifier:
         """
         trained_params = np.zeros((self.nepochs, self.n_params))
         history_train_loss = np.zeros(self.nepochs)
-        history_val_loss = np.zeros(self.nepochs)
         history_train_accuracy = np.zeros(self.nepochs)
+        history_val_loss = np.zeros(self.nepochs)
         history_val_accuracy = np.zeros(self.nepochs)
 
         number_of_batches = math.ceil(self.training_size / self.batch_size)
@@ -664,7 +665,7 @@ class Qclassifier:
 
         loss = 0.0
         for epoch in range(self.nepochs):
-            self.train = shuffle(self.train)
+            # self.train = shuffle(self.train)
             print(f"Epoch {epoch}")
             for i in range(number_of_batches):
                 print(f"Batch {i}")
@@ -674,37 +675,24 @@ class Qclassifier:
                     optimizer,
                 )
 
-                with open("history.txt", "a") as file:
+                with open(
+                    "epochs" + f"_q{self.nqubits}_l{self.nlayers}_" + ".txt", "a"
+                ) as file:
                     print(f"Epoch {epoch}", file=file)
                     print(f"Batch {i}", file=file)
                     print(f"Loss: {loss}", file=file)
-                    print(f"Parametri: {self.vparams[0:20]}", file=file)
 
             trained_params[epoch] = self.vparams
             history_train_loss[epoch] = loss
 
-            # VALIDATION LOSS
-            if self.loss == "crossentropy":
-                history_val_loss[epoch] = self.loss_crossentropy(
-                    self.validation[0], self.validation[1]
-                )
-
-            if self.loss == "fidelity":
-                history_val_loss[epoch] = self.loss_fidelity(
-                    self.validation[0], self.validation[1]
-                )
-
-            if self.loss == "weighted_fidelity":
-                history_val_loss[epoch] = self.loss_fidelity_weighted(
-                    self.validation[0], self.validation[1]
-                )
+            history_val_loss[epoch], history_val_accuracy[epoch] = self.val_step()
 
             # VALIDATION AND TRAINING ACCURACY
             history_train_accuracy[epoch] = self.accuracy(self.train)
-            history_val_accuracy[epoch] = self.accuracy(self.validation)
 
-            with open("epochs.txt", "a") as file:
-                print(f"Epoch {epoch}", file=file)
+            with open(
+                "epochs" + f"_q{self.nqubits}_l{self.nlayers}_" + ".txt", "a"
+            ) as file:
                 print(f"Accuracy training {history_train_accuracy[epoch]}", file=file)
                 print(f"Accuracy validation {history_val_accuracy[epoch]}", file=file)
 
