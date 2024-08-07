@@ -55,6 +55,7 @@ class Qclassifier:
         self.loss = loss_2_classes
         self.learning_rate = learning_rate
         self.alpha = tf.Variable(tf.random.normal((nclasses,)), dtype=tf.float32)
+        self.outputs = 0
 
         # IMAGE
         self.resize = resize
@@ -458,22 +459,17 @@ class Qclassifier:
         expectation_value = self.hamiltonian.expectation(predicted_state)
         return expectation_value, predicted_state
 
-    def accuracy(self, data):
+    def accuracy(self, predictions, labels):
 
-        predictions_float, predicted_fids, _ = self.prediction_function(data)
-        compare = np.zeros(len(data[0]))
-        for i in range(len(data[0])):
-            compare[i] = predicted_fids[i] == data[1][i]
+        compare = np.zeros(len(labels))
+        rounded_predictions = []
+        for i in range(len(labels)):
+            round_prediction = round(predictions[i])
+            compare[i] = round_prediction == labels[i]
+            rounded_predictions.append(round_prediction)
 
         correct = tf.reduce_sum(compare)
-        accuracy = correct / len(data[0])
-
-        with open("comparison.txt", "a") as file:
-            print("=" * 60)
-            print(f"Predictions class {predicted_fids}", file=file)
-            print(f"Labels {tf.cast(data[1], tf.int32)}", file=file)
-            print(f"Corrected predictions {compare}", file=file)
-            print(f"Accuracy {accuracy}", file=file)
+        accuracy = correct / len(labels)
 
         return accuracy
 
@@ -535,11 +531,11 @@ class Qclassifier:
 
             expectation_value, _ = self.circuit_output(x_batch[i])
             outputs.append((expectation_value + 1) / 2)
-            print(f"Output: {(expectation_value + 1) / 2}")
+            print(f"Output elemento {i} del batch: {(expectation_value + 1) / 2}")
         outputs = tf.convert_to_tensor(outputs, dtype=tf.float32)
         loss = tf.keras.losses.BinaryCrossentropy()(y_batch, outputs)
 
-        return loss
+        return loss, outputs
 
     def loss_fidelity(self, data, labels, size):
         cf = 0.0
@@ -577,7 +573,7 @@ class Qclassifier:
 
         return grads, loss
 
-    # @tf.function
+    @tf.function
     def train_step(self, x_batch, y_batch, optimizer):
         """Evaluate loss function on one train batch.
 
@@ -595,13 +591,15 @@ class Qclassifier:
         # e a causa di cio non calcola il gradiente
         if self.loss == "crossentropy":
             with tf.GradientTape() as tape:
-                loss = self.loss_crossentropy(x_batch, y_batch, self.batch_size)
+                loss, outputs = self.loss_crossentropy(
+                    x_batch, y_batch, self.batch_size
+                )
                 print(f"Loss: {loss}")
             grads = tape.gradient(loss, self.vparams)
             grads = tf.math.real(grads)
             optimizer.apply_gradients(zip([grads], [self.vparams]))
 
-            return loss
+            return loss, outputs
 
         if self.loss == "fidelity":
             with tf.GradientTape() as tape:
@@ -623,27 +621,20 @@ class Qclassifier:
 
     def val_step(self):
 
-        history_val_loss = 0
-        history_val_accuracy = 0
+        loss = 0
+        accuracy = 0
+        predictions = 0
 
         if self.loss == "crossentropy":
-            history_val_loss = self.loss_crossentropy(
+            loss, predictions = self.loss_crossentropy(
                 self.validation[0], self.validation[1], self.validation_size
             )
 
-        if self.loss == "fidelity":
-            history_val_loss = self.loss_fidelity(
-                self.validation[0], self.validation[1], self.validation_size
-            )
+        print(f"Predictions Validation {predictions}")
+        print(f"Labels Validation {self.validation[1]}")
+        accuracy = self.accuracy(predictions, self.validation[1])
 
-        if self.loss == "weighted_fidelity":
-            history_val_loss = self.loss_fidelity_weighted(
-                self.validation[0], self.validation[1], self.validation_size
-            )
-
-        history_val_accuracy = self.accuracy(self.validation)
-
-        return history_val_loss, history_val_accuracy
+        return loss, accuracy
 
     def training_loop(self):
         """Method to train the classifier.
@@ -663,37 +654,46 @@ class Qclassifier:
         number_of_batches = math.ceil(self.training_size / self.batch_size)
         optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
-        loss = 0.0
         for epoch in range(self.nepochs):
+            loss = 0.0
+            outputs_model = []
             # self.train = shuffle(self.train)
             print(f"Epoch {epoch}")
             for i in range(number_of_batches):
+                print("=" * 20)
                 print(f"Batch {i}")
-                loss = self.train_step(
+                loss, outputs = self.train_step(
                     self.train[0][i * self.batch_size : (i + 1) * self.batch_size],
                     self.train[1][i * self.batch_size : (i + 1) * self.batch_size],
                     optimizer,
                 )
+                print(f"Outputs {outputs}")
+                outputs_model.extend(outputs.numpy())
+                print(f"Outputs Model {outputs_model}")
 
                 with open(
                     "epochs" + f"_q{self.nqubits}_l{self.nlayers}_" + ".txt", "a"
                 ) as file:
                     print(f"Epoch {epoch}", file=file)
                     print(f"Batch {i}", file=file)
-                    print(f"Loss: {loss}", file=file)
+                    print(f"Training Loss: {loss}", file=file)
 
             trained_params[epoch] = self.vparams
+            history_train_accuracy[epoch] = self.accuracy(outputs_model, self.train[1])
             history_train_loss[epoch] = loss
 
+            print("%" * 30)
+            print("Validation step")
             history_val_loss[epoch], history_val_accuracy[epoch] = self.val_step()
-
-            # VALIDATION AND TRAINING ACCURACY
-            history_train_accuracy[epoch] = self.accuracy(self.train)
+            print(f"Validation loss {history_val_loss[epoch]}")
+            print(f"Validation accuracy {history_val_accuracy[epoch]}")
+            print("%" * 30)
 
             with open(
                 "epochs" + f"_q{self.nqubits}_l{self.nlayers}_" + ".txt", "a"
             ) as file:
                 print(f"Accuracy training {history_train_accuracy[epoch]}", file=file)
+                print(f"Validation loss {history_val_loss[epoch]}", file=file)
                 print(f"Accuracy validation {history_val_accuracy[epoch]}", file=file)
 
         return (

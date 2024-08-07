@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 
-nqubits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16]
+nqubits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 layers = [1, 5, 10, 15, 20, 25, 40, 60, 80, 100]
 trials = 50
 

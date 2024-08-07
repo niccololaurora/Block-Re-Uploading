@@ -5,6 +5,7 @@ import argparse
 
 from pathlib import Path
 
+from help_functions import blocks_details
 from qclassifier import Qclassifier
 
 
@@ -17,22 +18,19 @@ args = parser.parse_args()
 layers = args.layer
 resize = 8
 
+
 # Image details
-block_width = [3, 3, 2, 4, 4]
-block_height = [4, 4, 4, 4, 4]
-positions = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
-
-training_size = 1
-digits = [0, 1]
-
 # Fix number of qubits
-nqubits = 12
+nqubits = [15]
+block_width, block_height, positions = blocks_details(nqubits[0])
+digits = [0, 1]
+local = False
 
 # Sample image and parameters
 n_models = 50
-for j in range(1):
+for j in range(len(nqubits)):
     print("=" * 60)
-    print(f"Number of qubits: {nqubits}")
+    print(f"Number of qubits: {nqubits[0]}")
     for k in range(1):
         print("*" * 30)
         print(f"Layers {layers}")
@@ -41,28 +39,30 @@ for j in range(1):
 
             # Gradients Folder
             LOCAL_FOLDER = Path(__file__).parent
-            file_path = LOCAL_FOLDER / "trainability"
-            if not os.path.exists("trainability"):
-                os.makedirs("trainability")
+            file_path = LOCAL_FOLDER / "gradients"
+            if not os.path.exists("gradients"):
+                os.makedirs("gradients")
 
             seed_value = i
             qclass = Qclassifier(
-                training_size=training_size,
+                training_size=10,
                 validation_size=10,
                 test_size=10,
                 nepochs=1,
-                batch_size=training_size,
+                batch_size=1,
                 nlayers=layers,
                 seed_value=seed_value,
-                nqubits=nqubits,
+                nqubits=nqubits[0],
                 resize=resize,
                 nclasses=len(digits),
                 pooling="max",
-                block_width=block_sizes[j][0],
-                block_height=block_sizes[j][1],
-                loss_2_classes="crossentropy-gradients",
+                block_width=block_width,
+                block_height=block_height,
+                loss_2_classes="crossentropy",
                 learning_rate=0.01,
                 digits=digits,
+                positions=positions,
+                local=local,
             )
 
             qclass.print_circuit()
@@ -71,7 +71,7 @@ for j in range(1):
             vparams = qclass.get_vparams()
             grads, loss = qclass.trainability(training[0][0], training[1][0])
 
-            name_file = f"gradients_Q{nqubits}_L{layers}_M{i}" + ".npz"
+            name_file = f"gradients_Q{nqubits[0]}_L{layers}_M{i}" + ".npz"
             np.savez(
                 file_path / name_file,
                 grads=grads,
