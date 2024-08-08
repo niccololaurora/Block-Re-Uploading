@@ -22,7 +22,7 @@ def main():
     parser.add_argument("--layer", type=int, required=True, help="Number of layers")
     args = parser.parse_args()
 
-    epochs = 200
+    epochs = 2
     learning_rate = 0.001
     loss = "crossentropy"
     digits = [0, 1]
@@ -35,10 +35,16 @@ def main():
     layers = args.layer
     seed = 42
     # nqubits = [8, 6, 4, 2, 1]
-    nqubits = 15
+    nqubits = 2
     pooling = "max"
     local = True
     block_width, block_height, positions = blocks_details(nqubits)
+
+    pretraining = True
+    if pretraining == True:
+        parameters_from_outside = np.load(f"trained_params_q{nqubits}-l{layers}.npy")
+    else:
+        parameters_from_outside = None
 
     file_path = LOCAL_FOLDER / "statistics"
     if not os.path.exists("statistics"):
@@ -81,6 +87,7 @@ def main():
                 digits=digits,
                 positions=positions,
                 local=local,
+                parameters_from_outside=parameters_from_outside,
             )
 
             # PREDICTIONS BEFORE TRAINING

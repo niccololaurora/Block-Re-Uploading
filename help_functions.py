@@ -482,3 +482,12 @@ def blocks_details(nqubits):
             (3, 3),
         ]
         return block_width, block_height, positions
+
+
+def initialize_parameters(n_params, parameters=None):
+    if parameters is None:
+        return tf.Variable(
+            tf.random.normal((n_params,), mean=1.0, stddev=1.0, dtype=tf.float32)
+        )
+    if parameters is not None:
+        return parameters
