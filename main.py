@@ -8,7 +8,13 @@ import numpy as np
 import tensorflow as tf
 from pathlib import Path
 from qclassifier import Qclassifier
-from plot_functions import Bloch, plot_predictions, plot_loss_accuracy, plot_sphere
+from plot_functions import (
+    Bloch,
+    plot_predictions,
+    plot_loss_accuracy,
+    plot_sphere,
+    plot_absolute_gradients,
+)
 from help_functions import create_target, blocks_details
 
 LOCAL_FOLDER = Path(__file__).parent
@@ -22,29 +28,30 @@ def main():
     parser.add_argument("--layer", type=int, required=True, help="Number of layers")
     args = parser.parse_args()
 
-    epochs = 2
+    dataset = "fashion"
+    epochs = 5
     learning_rate = 0.001
     loss = "crossentropy"
     digits = [0, 1]
-    training_size = 250 * len(digits)
-    validation_size = 250 * len(digits)
-    test_size = 100 * len(digits)
-    batch_size = 50
+    training_size = 20 * len(digits)
+    validation_size = 20 * len(digits)
+    test_size = 10 * len(digits)
+    batch_size = 2
     resize = 8
     # layers = [1, 2, 3, 4, 5, 6]
     layers = args.layer
     seed = 42
     # nqubits = [8, 6, 4, 2, 1]
-    nqubits = 2
+    nqubits = 1
     pooling = "max"
     local = True
-    block_width, block_height, positions = blocks_details(nqubits)
+    block_width, block_height, positions = blocks_details(resize, nqubits)
 
-    pretraining = True
+    pretraining = False
+    trained_params = None
     if pretraining == True:
         parameters_from_outside = np.load(f"trained_params_q{nqubits}-l{layers}.npy")
-    else:
-        parameters_from_outside = None
+        trained_params = tf.Variable(parameters_from_outside, dtype=tf.float32)
 
     file_path = LOCAL_FOLDER / "statistics"
     if not os.path.exists("statistics"):
@@ -87,7 +94,8 @@ def main():
                 digits=digits,
                 positions=positions,
                 local=local,
-                parameters_from_outside=parameters_from_outside,
+                parameters_from_outside=trained_params,
+                dataset=dataset,
             )
 
             # PREDICTIONS BEFORE TRAINING
@@ -117,6 +125,7 @@ def main():
             )
 
             (
+                absolute_gradients,
                 trained_params,
                 history_train_loss,
                 history_val_loss,
@@ -146,6 +155,12 @@ def main():
             np.savez(
                 file_path / name_file,
                 dict_a,
+            )
+
+            name_file = "abs_grads_" + f"q{nqubits}-" + f"l{layers}" + ".npy"
+            np.save(
+                file_path / name_file,
+                absolute_gradients,
             )
 
             name_file = "trained_params_" + f"q{nqubits}-" + f"l{layers}" + ".npy"
@@ -199,6 +214,8 @@ def main():
                 history_train_accuracy,
                 history_val_accuracy,
             )
+
+            plot_absolute_gradients(nqubits, layers, epochs, absolute_gradients)
 
 
 if __name__ == "__main__":

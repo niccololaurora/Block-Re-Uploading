@@ -8,13 +8,19 @@ from qibo.config import raise_error
 from qibo.symbols import Z, I
 from qibo.optimizers import optimize
 
-from data import initialize_data, pooling_creator, create_blocks, shuffle
+from data import (
+    data_choice,
+    pooling_creator,
+    create_blocks,
+    shuffle,
+)
 from help_functions import (
     fidelity,
     create_target,
     number_params,
     create_hamiltonian,
     block_sizes,
+    initialize_parameters,
 )
 
 
@@ -39,6 +45,8 @@ class Qclassifier:
         digits,
         positions,
         local,
+        parameters_from_outside,
+        dataset,
     ):
 
         np.random.seed(seed_value)
@@ -59,7 +67,8 @@ class Qclassifier:
 
         # IMAGE
         self.resize = resize
-        self.train, self.test, self.validation = initialize_data(
+        self.train, self.test, self.validation = data_choice(
+            dataset,
             digits,
             self.training_size,
             self.test_size,
@@ -80,9 +89,8 @@ class Qclassifier:
         )
 
         self.n_params = self.params_1layer * nlayers
-        self.vparams = tf.Variable(
-            tf.random.normal((self.n_params,), mean=1.0, stddev=1.0, dtype=tf.float32)
-        )
+        self.vparams = initialize_parameters(self.n_params, parameters_from_outside)
+
         self.hamiltonian = create_hamiltonian(self.nqubits, local=local)
         self.ansatz = self.circuit()
 
@@ -598,8 +606,9 @@ class Qclassifier:
             grads = tape.gradient(loss, self.vparams)
             grads = tf.math.real(grads)
             optimizer.apply_gradients(zip([grads], [self.vparams]))
+            absolute_gradients = tf.abs(grads)
 
-            return loss, outputs
+            return loss, outputs, absolute_gradients
 
         if self.loss == "fidelity":
             with tf.GradientTape() as tape:
@@ -645,6 +654,7 @@ class Qclassifier:
         Returns:
             No
         """
+        absolute_gradients_epochs = np.zeros(self.nepochs)
         trained_params = np.zeros((self.nepochs, self.n_params))
         history_train_loss = np.zeros(self.nepochs)
         history_train_accuracy = np.zeros(self.nepochs)
@@ -657,19 +667,20 @@ class Qclassifier:
         for epoch in range(self.nepochs):
             loss = 0.0
             outputs_model = []
+            absolute_gradients = []
             # self.train = shuffle(self.train)
             print(f"Epoch {epoch}")
             for i in range(number_of_batches):
                 print("=" * 20)
                 print(f"Batch {i}")
-                loss, outputs = self.train_step(
+                loss, outputs, abs_grads = self.train_step(
                     self.train[0][i * self.batch_size : (i + 1) * self.batch_size],
                     self.train[1][i * self.batch_size : (i + 1) * self.batch_size],
                     optimizer,
                 )
-                print(f"Outputs {outputs}")
+
                 outputs_model.extend(outputs.numpy())
-                print(f"Outputs Model {outputs_model}")
+                absolute_gradients.extend(abs_grads.numpy())
 
                 with open(
                     "epochs" + f"_q{self.nqubits}_l{self.nlayers}_" + ".txt", "a"
@@ -678,6 +689,7 @@ class Qclassifier:
                     print(f"Batch {i}", file=file)
                     print(f"Training Loss: {loss}", file=file)
 
+            absolute_gradients_epochs[epoch] = tf.reduce_mean(absolute_gradients)
             trained_params[epoch] = self.vparams
             history_train_accuracy[epoch] = self.accuracy(outputs_model, self.train[1])
             history_train_loss[epoch] = loss
@@ -697,6 +709,7 @@ class Qclassifier:
                 print(f"Accuracy validation {history_val_accuracy[epoch]}", file=file)
 
         return (
+            absolute_gradients_epochs,
             trained_params[-1],
             history_train_loss,
             history_val_loss,
