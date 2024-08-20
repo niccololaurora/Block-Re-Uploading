@@ -238,250 +238,375 @@ def block_sizes(resize, width, height):
     return sizes
 
 
-def blocks_details(nqubits):
-    if nqubits == 1:
-        block_width = [8]
-        block_height = [8]
-        positions = [
-            (0, 0),
-        ]
-        return block_width, block_height, positions
-    if nqubits == 2:
-        block_width = [4] * 2
-        block_height = [8] * 2
-        positions = [
-            (0, 0),
-            (0, 1),
-        ]
-        return block_width, block_height, positions
-    if nqubits == 3:
-        block_width = [3, 3, 2]
-        block_height = [8] * 3
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-        ]
-        return block_width, block_height, positions
-    if nqubits == 4:
-        block_width = [4] * 4
-        block_height = [4] * 4
-        positions = [
-            (0, 0),
-            (0, 1),
-            (1, 0),
-            (1, 1),
-        ]
-        return block_width, block_height, positions
-    if nqubits == 5:
-        block_width = [3, 3, 2, 4, 4]
-        block_height = [4] * 5
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-            (1, 0),
-            (1, 1),
-        ]
-        return block_width, block_height, positions
+def blocks_details(size, nqubits):
+    if size == 8:
+        if nqubits == 1:
+            block_width = [8]
+            block_height = [8]
+            positions = [
+                (0, 0),
+            ]
+            return block_width, block_height, positions
+        if nqubits == 2:
+            block_width = [4] * 2
+            block_height = [8] * 2
+            positions = [
+                (0, 0),
+                (0, 1),
+            ]
+            return block_width, block_height, positions
+        if nqubits == 3:
+            block_width = [3, 3, 2]
+            block_height = [8] * 3
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+            ]
+            return block_width, block_height, positions
+        if nqubits == 4:
+            block_width = [4] * 4
+            block_height = [4] * 4
+            positions = [
+                (0, 0),
+                (0, 1),
+                (1, 0),
+                (1, 1),
+            ]
+            return block_width, block_height, positions
+        if nqubits == 5:
+            block_width = [3, 3, 2, 4, 4]
+            block_height = [4] * 5
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (1, 0),
+                (1, 1),
+            ]
+            return block_width, block_height, positions
 
-    if nqubits == 6:
-        block_width = [3, 3, 2, 3, 3, 2]
-        block_height = [4] * 6
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-            (1, 0),
-            (1, 1),
-            (1, 2),
-        ]
-        return block_width, block_height, positions
+        if nqubits == 6:
+            block_width = [3, 3, 2, 3, 3, 2]
+            block_height = [4] * 6
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+            ]
+            return block_width, block_height, positions
 
-    if nqubits == 7:
-        block_width = [2, 2, 2, 2, 3, 3, 2]
-        block_height = [4] * 7
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-            (0, 3),
-            (1, 0),
-            (1, 1),
-            (1, 2),
-        ]
-        return block_width, block_height, positions
+        if nqubits == 7:
+            block_width = [2, 2, 2, 2, 3, 3, 2]
+            block_height = [4] * 7
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+            ]
+            return block_width, block_height, positions
 
-    if nqubits == 8:
-        block_width = [2] * 8
-        block_height = [4] * 8
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-            (0, 3),
-            (1, 0),
-            (1, 1),
-            (1, 2),
-            (1, 3),
-        ]
-        return block_width, block_height, positions
+        if nqubits == 8:
+            block_width = [2] * 8
+            block_height = [4] * 8
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+                (1, 3),
+            ]
+            return block_width, block_height, positions
 
-    if nqubits == 9:
-        block_width = [1, 2, 2, 2, 1, 2, 2, 2, 2]
-        block_height = [4] * 9
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-            (0, 3),
-            (0, 4),
-            (1, 0),
-            (1, 1),
-            (1, 2),
-            (1, 3),
-        ]
-        return block_width, block_height, positions
+        if nqubits == 9:
+            block_width = [1, 2, 2, 2, 1, 2, 2, 2, 2]
+            block_height = [4] * 9
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (0, 4),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+                (1, 3),
+            ]
+            return block_width, block_height, positions
 
-    if nqubits == 10:
-        block_width = [1, 2, 2, 2, 1, 1, 2, 2, 2, 1]
-        block_height = [4] * 10
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-            (0, 3),
-            (0, 4),
-            (1, 0),
-            (1, 1),
-            (1, 2),
-            (1, 3),
-            (1, 4),
-        ]
-        return block_width, block_height, positions
+        if nqubits == 10:
+            block_width = [1, 2, 2, 2, 1, 1, 2, 2, 2, 1]
+            block_height = [4] * 10
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (0, 4),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+            ]
+            return block_width, block_height, positions
 
-    if nqubits == 11:
-        block_width = [1, 1, 1, 2, 2, 1, 1, 2, 2, 2, 1]
-        block_height = [4] * 11
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-            (0, 3),
-            (0, 4),
-            (0, 5),
-            (1, 0),
-            (1, 1),
-            (1, 2),
-            (1, 3),
-            (1, 4),
-        ]
-        return block_width, block_height, positions
+        if nqubits == 11:
+            block_width = [1, 1, 1, 2, 2, 1, 1, 2, 2, 2, 1]
+            block_height = [4] * 11
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (0, 4),
+                (0, 5),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+            ]
+            return block_width, block_height, positions
 
-    if nqubits == 12:
-        block_width = [2] * 12
-        block_height = [3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2]
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-            (0, 3),
-            (1, 0),
-            (1, 1),
-            (1, 2),
-            (1, 3),
-            (2, 0),
-            (2, 1),
-            (2, 2),
-            (2, 3),
-        ]
-        return block_width, block_height, positions
+        if nqubits == 12:
+            block_width = [2] * 12
+            block_height = [3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2]
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+                (1, 3),
+                (2, 0),
+                (2, 1),
+                (2, 2),
+                (2, 3),
+            ]
+            return block_width, block_height, positions
 
-    if nqubits == 13:
-        block_width = [1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-        block_height = [3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2]
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-            (0, 3),
-            (0, 4),
-            (1, 0),
-            (1, 1),
-            (1, 2),
-            (1, 3),
-            (2, 0),
-            (2, 1),
-            (2, 2),
-            (2, 3),
-        ]
-        return block_width, block_height, positions
+        if nqubits == 13:
+            block_width = [1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+            block_height = [3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2]
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (0, 4),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+                (1, 3),
+                (2, 0),
+                (2, 1),
+                (2, 2),
+                (2, 3),
+            ]
+            return block_width, block_height, positions
 
-    if nqubits == 14:
-        block_width = [1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2]
-        block_height = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2]
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-            (0, 3),
-            (0, 4),
-            (1, 0),
-            (1, 1),
-            (1, 2),
-            (1, 3),
-            (1, 4),
-            (2, 0),
-            (2, 1),
-            (2, 2),
-            (2, 3),
-        ]
-        return block_width, block_height, positions
+        if nqubits == 14:
+            block_width = [1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2]
+            block_height = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2]
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (0, 4),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 0),
+                (2, 1),
+                (2, 2),
+                (2, 3),
+            ]
+            return block_width, block_height, positions
 
-    if nqubits == 15:
-        block_width = [1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 2, 2]
-        block_height = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2]
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-            (0, 3),
-            (0, 4),
-            (1, 0),
-            (1, 1),
-            (1, 2),
-            (1, 3),
-            (1, 4),
-            (2, 0),
-            (2, 1),
-            (2, 2),
-            (2, 3),
-            (2, 4),
-        ]
-        return block_width, block_height, positions
+        if nqubits == 15:
+            block_width = [1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 2, 2]
+            block_height = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2]
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (0, 4),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 0),
+                (2, 1),
+                (2, 2),
+                (2, 3),
+                (2, 4),
+            ]
+            return block_width, block_height, positions
 
-    if nqubits == 16:
-        block_width = [2] * 16
-        block_height = [2] * 16
-        positions = [
-            (0, 0),
-            (0, 1),
-            (0, 2),
-            (0, 3),
-            (1, 0),
-            (1, 1),
-            (1, 2),
-            (1, 3),
-            (2, 0),
-            (2, 1),
-            (2, 2),
-            (2, 3),
-            (3, 0),
-            (3, 1),
-            (3, 2),
-            (3, 3),
-        ]
-        return block_width, block_height, positions
+        if nqubits == 16:
+            block_width = [2] * 16
+            block_height = [2] * 16
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+                (1, 3),
+                (2, 0),
+                (2, 1),
+                (2, 2),
+                (2, 3),
+                (3, 0),
+                (3, 1),
+                (3, 2),
+                (3, 3),
+            ]
+            return block_width, block_height, positions
+
+    if size == 12:
+        if nqubits == 1:
+            block_width = [12]
+            block_height = [12]
+            positions = [
+                (0, 0),
+            ]
+            return block_width, block_height, positions
+
+        if nqubits == 2:
+            block_width = [6] * 2
+            block_height = [12] * 2
+            positions = [
+                (0, 0),
+                (0, 1),
+            ]
+            return block_width, block_height, positions
+        if nqubits == 3:
+            block_width = [4] * 3
+            block_height = [12] * 3
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+            ]
+            return block_width, block_height, positions
+        if nqubits == 4:
+            block_width = [6] * 4
+            block_height = [6] * 4
+            positions = [
+                (0, 0),
+                (0, 1),
+                (1, 0),
+                (1, 1),
+            ]
+            return block_width, block_height, positions
+        if nqubits == 5:
+            block_width = [4, 4, 4, 6, 6]
+            block_height = [6] * 5
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (1, 0),
+                (1, 1),
+            ]
+            return block_width, block_height, positions
+        if nqubits == 6:
+            block_width = [4] * 6
+            block_height = [6] * 6
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+            ]
+            return block_width, block_height, positions
+        if nqubits == 7:
+            block_width = [3, 3, 3, 3, 4, 4, 4]
+            block_height = [6] * 7
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+            ]
+            return block_width, block_height, positions
+        if nqubits == 8:
+            block_width = [3] * 8
+            block_height = [6] * 8
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+                (1, 3),
+            ]
+            return block_width, block_height, positions
+
+    if size == 14:
+        if nqubits == 1:
+            block_width = [14]
+            block_height = [14]
+            positions = [
+                (0, 0),
+            ]
+            return block_width, block_height, positions
+
+        if nqubits == 2:
+            block_width = [7] * 2
+            block_height = [12] * 2
+            positions = [
+                (0, 0),
+                (0, 1),
+            ]
+            return block_width, block_height, positions
+        if nqubits == 3:
+            block_width = [5, 5, 4]
+            block_height = [12] * 3
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+            ]
+            return block_width, block_height, positions
+        if nqubits == 4:
+            block_width = [7] * 4
+            block_height = [7] * 4
+            positions = [
+                (0, 0),
+                (0, 1),
+                (1, 0),
+                (1, 1),
+            ]
+            return block_width, block_height, positions
 
 
 def initialize_parameters(n_params, parameters=None):
