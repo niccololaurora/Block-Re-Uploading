@@ -10,6 +10,35 @@ from qibo.symbols import X, Y, Z
 LOCAL_FOLDER = Path(__file__).parent
 
 
+def plot_absolute_gradients(qubit, layers, epochs, absolute_gradients):
+    # Ensure that file_path exists
+    file_path = LOCAL_FOLDER / "plots"
+    file_path.mkdir(parents=True, exist_ok=True)
+
+    # Define plot settings
+    WIDTH = 0.5
+
+    # Generate an array of epoch indices
+    epoch_indices = np.arange(1, epochs + 1, 1)
+
+    # Create the plot
+    plt.figure(figsize=(10, 6))
+    plt.plot(
+        epoch_indices, absolute_gradients, alpha=0.8, lw=1.5, ls="-", color="royalblue"
+    )
+
+    # Add labels and title
+    plt.xlabel("Epochs")
+    plt.ylabel("Mean Absolute Gradients")
+    plt.title("Mean Absolute Gradients vs Epochs")
+
+    # Optionally, add grid and customize axes
+    plt.tight_layout()
+
+    # Save the plot
+    plt.savefig(file_path / f"absolute_gradients_q{qubit}-l{layers}.pdf")
+
+
 def plot_predictions(predictions, x_data, y_data, name, rows, columns):
     """Function to plot 25 classifier's predictions.
     It will plot a table 5x5 of MNIST images: each image will have above the classifier's prediction.
