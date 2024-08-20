@@ -28,26 +28,26 @@ def main():
     parser.add_argument("--layer", type=int, required=True, help="Number of layers")
     args = parser.parse_args()
 
-    dataset = "fashion"
-    epochs = 5
+    dataset = "digits"
+    epochs = 50
     learning_rate = 0.001
     loss = "crossentropy"
     digits = [0, 1]
-    training_size = 20 * len(digits)
-    validation_size = 20 * len(digits)
-    test_size = 10 * len(digits)
-    batch_size = 2
+    training_size = 250 * len(digits)
+    validation_size = 250 * len(digits)
+    test_size = 100 * len(digits)
+    batch_size = 50
     resize = 8
     # layers = [1, 2, 3, 4, 5, 6]
     layers = args.layer
     seed = 42
     # nqubits = [8, 6, 4, 2, 1]
-    nqubits = 1
+    nqubits = 15
     pooling = "max"
     local = True
     block_width, block_height, positions = blocks_details(resize, nqubits)
 
-    pretraining = False
+    pretraining = True
     trained_params = None
     if pretraining == True:
         parameters_from_outside = np.load(f"trained_params_q{nqubits}-l{layers}.npy")
@@ -60,6 +60,8 @@ def main():
         os.makedirs("plots", exist_ok=True)
 
     with open("summary.txt", "w") as file:
+        print(f"Dataset: {dataset}", file=file)
+        print(f"Locality: {str(local)}", file=file)
         print(f"Qubits: {nqubits}", file=file)
         print(f"Layers: {layers}", file=file)
         print(f"Epochs: {epochs}", file=file)
