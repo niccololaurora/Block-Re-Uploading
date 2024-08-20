@@ -582,7 +582,7 @@ def blocks_details(size, nqubits):
 
         if nqubits == 2:
             block_width = [7] * 2
-            block_height = [12] * 2
+            block_height = [14] * 2
             positions = [
                 (0, 0),
                 (0, 1),
@@ -590,7 +590,7 @@ def blocks_details(size, nqubits):
             return block_width, block_height, positions
         if nqubits == 3:
             block_width = [5, 5, 4]
-            block_height = [12] * 3
+            block_height = [14] * 3
             positions = [
                 (0, 0),
                 (0, 1),
@@ -605,6 +605,31 @@ def blocks_details(size, nqubits):
                 (0, 1),
                 (1, 0),
                 (1, 1),
+            ]
+            return block_width, block_height, positions
+
+        if nqubits == 5:
+            block_width = [5, 5, 4, 7, 7]
+            block_height = [7] * 5
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (1, 0),
+                (1, 1),
+            ]
+            return block_width, block_height, positions
+
+        if nqubits == 6:
+            block_width = [5, 5, 4, 5, 5, 4]
+            block_height = [7] * 6
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+                (1, 0),
+                (1, 1),
+                (1, 2),
             ]
             return block_width, block_height, positions
 
