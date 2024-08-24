@@ -633,6 +633,62 @@ def blocks_details(size, nqubits):
             ]
             return block_width, block_height, positions
 
+    if size == 16:
+        if nqubits == 1:
+            block_width = [16]
+            block_height = [16]
+            positions = [
+                (0, 0),
+            ]
+            return block_width, block_height, positions
+
+        if nqubits == 2:
+            block_width = [8] * 2
+            block_height = [16] * 2
+            positions = [
+                (0, 0),
+                (0, 1),
+            ]
+            return block_width, block_height, positions
+
+        if nqubits == 3:
+            block_width = [5, 5, 6]
+            block_height = [16] * 3
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+            ]
+            return block_width, block_height, positions
+
+    if size == 18:
+        if nqubits == 1:
+            block_width = [18]
+            block_height = [18]
+            positions = [
+                (0, 0),
+            ]
+            return block_width, block_height, positions
+
+        if nqubits == 2:
+            block_width = [9] * 2
+            block_height = [18] * 2
+            positions = [
+                (0, 0),
+                (0, 1),
+            ]
+            return block_width, block_height, positions
+
+        if nqubits == 3:
+            block_width = [6] * 3
+            block_height = [18] * 3
+            positions = [
+                (0, 0),
+                (0, 1),
+                (0, 2),
+            ]
+            return block_width, block_height, positions
+
 
 def initialize_parameters(n_params, parameters=None):
     if parameters is None:
