@@ -49,7 +49,7 @@ def main():
     # layers = [1, 2, 3, 4, 5, 6]
     layers = args.layer
     seed = 42
-    # nqubits = [8, 6, 4, 2, 1]
+    # Options for pooling: ["max", "average", "no"]
     pooling = "max"
     block_width, block_height, positions = blocks_details(resize, nqubits)
 
@@ -97,7 +97,7 @@ def main():
                 nqubits=nqubits,
                 resize=resize,
                 nclasses=len(digits),
-                pooling="max",
+                pooling=pooling,
                 block_width=block_width,
                 block_height=block_height,
                 loss_2_classes="crossentropy",
