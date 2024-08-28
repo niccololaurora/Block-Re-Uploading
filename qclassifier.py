@@ -47,6 +47,7 @@ class Qclassifier:
         local,
         parameters_from_outside,
         dataset,
+        entanglement,
     ):
 
         np.random.seed(seed_value)
@@ -83,11 +84,11 @@ class Qclassifier:
         self.nqubits = nqubits
         self.nlayers = nlayers
         self.pooling = pooling
+        self.entanglement = entanglement
         self.n_embed_params = 2 * resize**2
         self.params_1layer = number_params(
             self.n_embed_params, self.nqubits, self.pooling
         )
-
         self.n_params = self.params_1layer * nlayers
         self.vparams = initialize_parameters(self.n_params, parameters_from_outside)
 
@@ -816,8 +817,9 @@ class Qclassifier:
             circuit += self.embedding_circuit()
 
             # Entanglement
-            if self.nqubits != 1:
-                circuit += self.entanglement_circuit()
+            if self.entanglement == True:
+                if self.nqubits != 1:
+                    circuit += self.entanglement_circuit()
 
             # Pooling
             if self.pooling != "no":
@@ -828,8 +830,9 @@ class Qclassifier:
                 break
 
             # Entanglement between layers
-            if self.nqubits != 1:
-                circuit += self.entanglement_circuit()
+            if self.entanglement == True:
+                if self.nqubits != 1:
+                    circuit += self.entanglement_circuit()
 
         return circuit
 

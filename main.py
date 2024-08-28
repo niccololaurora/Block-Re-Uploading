@@ -28,8 +28,17 @@ def main():
     parser.add_argument("--layer", type=int, required=True, help="Number of layers")
     args = parser.parse_args()
 
+    # Parameters to adjust
     dataset = "digits"
+    nqubits = 4
+    local = False
+    resize = 14
     epochs = 50
+    entanglement = True
+    pretraining = True
+    iterazione = str(2)
+
+    # Standard parameters
     learning_rate = 0.001
     loss = "crossentropy"
     digits = [0, 1]
@@ -37,20 +46,18 @@ def main():
     validation_size = 250 * len(digits)
     test_size = 100 * len(digits)
     batch_size = 50
-    resize = 8
     # layers = [1, 2, 3, 4, 5, 6]
     layers = args.layer
     seed = 42
     # nqubits = [8, 6, 4, 2, 1]
-    nqubits = 15
     pooling = "max"
-    local = True
     block_width, block_height, positions = blocks_details(resize, nqubits)
 
-    pretraining = True
     trained_params = None
     if pretraining == True:
-        parameters_from_outside = np.load(f"trained_params_q{nqubits}-l{layers}.npy")
+        parameters_from_outside = np.load(
+            f"statistics_{iterazione}/trained_params_q{nqubits}-l{layers}.npy"
+        )
         trained_params = tf.Variable(parameters_from_outside, dtype=tf.float32)
 
     file_path = LOCAL_FOLDER / "statistics"
@@ -59,7 +66,7 @@ def main():
     if not os.path.exists("plots"):
         os.makedirs("plots", exist_ok=True)
 
-    with open("summary.txt", "w") as file:
+    with open(f"summary_{iterazione}.txt", "w") as file:
         print(f"Dataset: {dataset}", file=file)
         print(f"Locality: {str(local)}", file=file)
         print(f"Qubits: {nqubits}", file=file)
@@ -69,6 +76,8 @@ def main():
         print(f"Loss: {loss}", file=file)
         print(f"Learning Rate: {learning_rate}", file=file)
         print(f"Sizes: (T, V) = ({training_size}, {validation_size})", file=file)
+        print(f"Dimension: {resize}", file=file)
+        print(f"Pretraining: {str(pretraining)}", file=file)
 
     # for su i qubits
     for k in range(1):
