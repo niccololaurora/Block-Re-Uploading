@@ -51,6 +51,7 @@ class Qclassifier:
     ):
 
         np.random.seed(seed_value)
+        tf.random.set_seed(seed_value)
         set_backend("tensorflow")
 
         # TRAINING
@@ -90,7 +91,9 @@ class Qclassifier:
             self.n_embed_params, self.nqubits, self.pooling
         )
         self.n_params = self.params_1layer * nlayers
-        self.vparams = initialize_parameters(self.n_params, parameters_from_outside)
+        self.vparams = initialize_parameters(
+            self.n_params, seed, parameters_from_outside
+        )
 
         self.hamiltonian = create_hamiltonian(self.nqubits, local=local)
         self.ansatz = self.circuit()

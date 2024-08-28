@@ -981,7 +981,9 @@ def blocks_details(size, nqubits):
             )
 
 
-def initialize_parameters(n_params, parameters=None):
+def initialize_parameters(n_params, seed, parameters=None):
+    tf.random.set_seed(seed)
+
     if parameters is None:
         return tf.Variable(
             tf.random.normal((n_params,), mean=1.0, stddev=1.0, dtype=tf.float32)
