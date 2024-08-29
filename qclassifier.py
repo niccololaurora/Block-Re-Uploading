@@ -9,10 +9,9 @@ from qibo.symbols import Z, I
 from qibo.optimizers import optimize
 
 from data import (
-    data_choice,
+    initialize_data,
     pooling_creator,
     create_blocks,
-    shuffle,
 )
 from help_functions import (
     fidelity,
@@ -42,7 +41,6 @@ class Qclassifier:
         loss_2_classes,
         resize,
         learning_rate,
-        digits,
         positions,
         local,
         parameters_from_outside,
@@ -69,13 +67,8 @@ class Qclassifier:
 
         # IMAGE
         self.resize = resize
-        self.train, self.test, self.validation = data_choice(
-            dataset,
-            digits,
-            self.training_size,
-            self.test_size,
-            self.validation_size,
-            resize,
+        self.train, self.test, self.validation = initialize_data(
+            dataset, training_size, test_size, validation_size, resize, seed_value
         )
         self.positions = positions
         self.block_width = block_width

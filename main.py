@@ -41,7 +41,6 @@ def main():
     # Standard parameters
     learning_rate = 0.001
     loss = "crossentropy"
-    digits = [0, 1]
     training_size = 250 * len(digits)
     validation_size = 250 * len(digits)
     test_size = 100 * len(digits)
@@ -102,7 +101,6 @@ def main():
                 block_height=block_height,
                 loss_2_classes="crossentropy",
                 learning_rate=learning_rate,
-                digits=digits,
                 positions=positions,
                 local=local,
                 parameters_from_outside=trained_params,

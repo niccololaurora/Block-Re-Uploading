@@ -3,29 +3,10 @@ import tensorflow as tf
 from datetime import datetime
 
 
-def data_choice(dataset, digits, training_size, test_size, validation_size, resize):
-    if dataset == "fashion":
-        digits = [1, 9]
-        training_data, test_data, validation_data = initialize_data_fashion(
-            digits, training_size, test_size, validation_size, resize
-        )
-        return training_data, test_data, validation_data
+def load_data(resize, selected_classes):
+    # (x_train, y_train), (x_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
-    if dataset == "digits":
-        training_data, test_data, validation_data = initialize_data_digits(
-            digits, training_size, test_size, validation_size, resize
-        )
-        return training_data, test_data, validation_data
-
-
-def initialize_data_fashion(digits, training_size, test_size, validation_size, resize):
-
-    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
-
-    # Define the class labels for 'Stivaletto' (label 9) and 'Trouser' (label 1)
-    selected_classes = digits
-
-    # Filter the training set
     train_filter = np.isin(y_train, selected_classes)
     test_filter = np.isin(y_test, selected_classes)
     x_train = x_train[train_filter]
@@ -33,98 +14,48 @@ def initialize_data_fashion(digits, training_size, test_size, validation_size, r
     x_test = x_test[test_filter]
     y_test = y_test[test_filter]
 
-    # Perfect balance of the classes
-    train_val_indices = []
-    test_indices = []
-    for class_label in selected_classes:
-        # Training
-        train_indices_class = np.where(y_train == class_label)[0]
-        sampled_indices_train = np.random.choice(
-            train_indices_class,
-            size=(training_size + validation_size) // len(selected_classes),
-            replace=False,
-        )
-        train_val_indices.extend(sampled_indices_train)
-
-        # Test
-        test_indices_class = np.where(y_test == class_label)[0]
-        sampled_indices_test = np.random.choice(
-            test_indices_class, size=test_size // len(selected_classes), replace=False
-        )
-        test_indices.extend(sampled_indices_test)
-
-    np.random.shuffle(test_indices)
-    x_test = x_test[test_indices]
-    y_test = y_test[test_indices]
-
-    val_indices = []
-    train_indices = []
-    for n in range(len(selected_classes)):
-        vindex_1 = (
-            n * int(validation_size / len(selected_classes))
-            + int(training_size / len(selected_classes)) * n
-        )
-        vindex_2 = (
-            int(validation_size / len(selected_classes)) * (n + 1)
-            + int(training_size / len(selected_classes)) * n
-        )
-        tindex_1 = n * int(training_size / len(selected_classes)) + int(
-            validation_size / len(selected_classes)
-        ) * (n + 1)
-        tindex_2 = (n + 1) * int(training_size / len(selected_classes)) + int(
-            validation_size / len(selected_classes)
-        ) * (n + 1)
-        validation_pick = train_val_indices[vindex_1:vindex_2]
-        train_pick = train_val_indices[tindex_1:tindex_2]
-
-        val_indices.extend(validation_pick)
-        train_indices.extend(train_pick)
-
-    np.random.shuffle(val_indices)
-    np.random.shuffle(train_indices)
-    x_val = x_train[val_indices]
-    y_val = y_train[val_indices]
-    x_train = x_train[train_indices]
-    y_train = y_train[train_indices]
-
-    # Resizing
     x_train = tf.expand_dims(x_train, axis=-1)
     x_test = tf.expand_dims(x_test, axis=-1)
-    x_val = tf.expand_dims(x_val, axis=-1)
 
     x_train = tf.image.resize(x_train, [resize, resize])
     x_test = tf.image.resize(x_test, [resize, resize])
-    x_val = tf.image.resize(x_val, [resize, resize])
 
     # Normalize pixel values to be between 0 and 1
     x_train = x_train / 255.0
     x_test = x_test / 255.0
-    x_val = x_val / 255.0
-
-    if len(selected_classes) == 2:
-        y_train = np.where(y_train == selected_classes[0], 0, 1)
-        y_test = np.where(y_test == selected_classes[0], 0, 1)
-        y_val = np.where(y_val == selected_classes[0], 0, 1)
 
     y_train = tf.convert_to_tensor(y_train, dtype=tf.float32)
     y_test = tf.convert_to_tensor(y_test, dtype=tf.float32)
-    y_val = tf.convert_to_tensor(y_val, dtype=tf.float32)
 
     training_data = (x_train, y_train)
     test_data = (x_test, y_test)
-    validation_data = (x_val, y_val)
 
     return (
         training_data,
         test_data,
-        validation_data,
     )
 
 
-def initialize_data_digits(digits, training_size, test_size, validation_size, resize):
+def initialize_data(dataset, training_size, test_size, validation_size, resize, seed):
     """Method which prepares the validation, training and test datasets."""
 
-    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+    # Choosing the seed is necessary to choose the shuffling and
+    # the digits that will be selected
+    x_train, y_train, x_test, y_test = 0, 0, 0, 0
+    digits = 0
+    np.random.seed(seed)
+
+    # ==============
+    # Choosing dataset and digits/clothes
+    # Fashion: boot and trousers
+    if dataset == "digits":
+        digits = [0, 1]
+        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+    if dataset == "fashion":
+        digits = [1, 9]
+        (x_train, y_train), (x_test, y_test) = (
+            tf.keras.datasets.fashion_mnist.load_data()
+        )
 
     # ==============
     # Select classes of interest
@@ -155,12 +86,15 @@ def initialize_data_digits(digits, training_size, test_size, validation_size, re
         test_indices.extend(sampled_indices_test)
 
     # TEST
+    # Shuffle the dataset
     np.random.shuffle(test_indices)
     x_test = x_test[test_indices]
     y_test = y_test[test_indices]
 
     # TRAINING AND VALIDATION
-    # np.random.shuffle(train_val_indices)
+    # Shuffle the indices, in order to obtain different
+    # training and validation dataset
+    np.random.shuffle(train_val_indices)
     val_indices = []
     train_indices = []
     for n in range(len(digits)):
@@ -184,6 +118,8 @@ def initialize_data_digits(digits, training_size, test_size, validation_size, re
         val_indices.extend(validation_pick)
         train_indices.extend(train_pick)
 
+    # Shuffle the training and validation dataset
+    # Definition of validation and training dataset
     np.random.shuffle(val_indices)
     np.random.shuffle(train_indices)
     x_val = x_train[val_indices]
@@ -206,7 +142,7 @@ def initialize_data_digits(digits, training_size, test_size, validation_size, re
     x_test = x_test / 255.0
     x_val = x_val / 255.0
 
-    # Normalize labels
+    # Normalize labels to [0, 1]
     if len(digits) == 2:
         y_train = np.where(y_train == digits[0], 0, 1)
         y_test = np.where(y_test == digits[0], 0, 1)
