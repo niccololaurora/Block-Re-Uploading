@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 from qibo import hamiltonians
 from qibo.symbols import Z, I
+from qibo.config import raise_error
 
 
 def create_target(nclasses):
