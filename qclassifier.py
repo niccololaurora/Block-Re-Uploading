@@ -93,9 +93,13 @@ class Qclassifier:
 
     def print_circuit(self):
         if not os.path.exists("Ansatz"):
-            os.makedirs("ansatz_draw")
+            os.makedirs("Ansatz")
         filename = f"Ansatz/ansatz_Q{self.nqubits}_L{self.nlayers}.txt"
         with open(filename, "a") as file:
+            print(f"Qubits: {self.nqubits}", file=file)
+            print(f"Layers: {self.nlayers}", file=file)
+            print(f"Pooling: {self.pooling}", file=file)
+            print(f"Entanglement: {self.entanglement}", file=file)
             print(self.ansatz.draw(), file=file)
 
     def get_vparams(self):
