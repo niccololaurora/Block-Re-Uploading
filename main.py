@@ -88,7 +88,7 @@ def main():
         print(f"Qubits: {nqubits}", file=file)
         print(f"Layers: {layers}", file=file)
         print(f"Epochs: {epochs}", file=file)
-        print(f"Classes: {len(digits)}", file=file)
+        print(f"Classes: {nclasses}", file=file)
         print(f"Loss: {loss}", file=file)
         print(f"Learning Rate: {learning_rate}", file=file)
         print(f"Sizes: (T, V) = ({training_size}, {validation_size})", file=file)
@@ -130,7 +130,7 @@ def main():
             # PREDICTIONS BEFORE TRAINING
             val_set = my_class.get_val_set()
             _, predictions, final_states_before = my_class.prediction_function(val_set)
-            label_states = create_target(len(digits))
+            label_states = create_target(nclasses)
 
             plot_predictions(
                 predictions,
