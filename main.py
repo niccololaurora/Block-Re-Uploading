@@ -39,11 +39,12 @@ def main():
     iterazione = str(2)
 
     # Standard parameters
+    nclasses = 2
     learning_rate = 0.001
     loss = "crossentropy"
-    training_size = 250 * len(digits)
-    validation_size = 250 * len(digits)
-    test_size = 100 * len(digits)
+    training_size = 250 * nclasses
+    validation_size = 250 * nclasses
+    test_size = 100 * nclasses
     batch_size = 50
     # layers = [1, 2, 3, 4, 5, 6]
     layers = args.layer
@@ -95,16 +96,17 @@ def main():
                 seed_value=seed,
                 nqubits=nqubits,
                 resize=resize,
-                nclasses=len(digits),
+                nclasses=nclasses,
                 pooling=pooling,
                 block_width=block_width,
                 block_height=block_height,
-                loss_2_classes="crossentropy",
+                loss_2_classes=loss,
                 learning_rate=learning_rate,
                 positions=positions,
                 local=local,
                 parameters_from_outside=trained_params,
                 dataset=dataset,
+                entanglement=entanglement,
             )
 
             # PREDICTIONS BEFORE TRAINING
