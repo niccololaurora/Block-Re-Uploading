@@ -85,21 +85,16 @@ class Qclassifier:
         )
         self.n_params = self.params_1layer * nlayers
         self.vparams = initialize_parameters(
-            self.n_params, seed, parameters_from_outside
+            self.n_params, seed_value, parameters_from_outside
         )
 
         self.hamiltonian = create_hamiltonian(self.nqubits, local=local)
         self.ansatz = self.circuit()
 
-        if len(digits) != nclasses:
-            raise_error(
-                ValueError, "Number of digits and number of classes are different"
-            )
-
     def print_circuit(self):
-        if not os.path.exists("ansatz_draw"):
+        if not os.path.exists("Ansatz"):
             os.makedirs("ansatz_draw")
-        filename = f"ansatz_draw/ansatz_Q{self.nqubits}_L{self.nlayers}.txt"
+        filename = f"Ansatz/ansatz_Q{self.nqubits}_L{self.nlayers}.txt"
         with open(filename, "a") as file:
             print(self.ansatz.draw(), file=file)
 
@@ -205,17 +200,17 @@ class Qclassifier:
             if self.nqubits == 2:
                 c.add(gates.CZ(0, 1))
 
-            if self.nqubits == 3:
+            elif self.nqubits == 3:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(1, 2))
 
-            if self.nqubits == 4:
+            elif self.nqubits == 4:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 2))
                 c.add(gates.CZ(1, 3))
                 c.add(gates.CZ(2, 3))
 
-            if self.nqubits == 5:
+            elif self.nqubits == 5:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 3))
                 c.add(gates.CZ(1, 2))
@@ -223,7 +218,7 @@ class Qclassifier:
                 c.add(gates.CZ(2, 4))
                 c.add(gates.CZ(3, 4))
 
-            if self.nqubits == 6:
+            elif self.nqubits == 6:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 3))
                 c.add(gates.CZ(1, 2))
@@ -232,7 +227,7 @@ class Qclassifier:
                 c.add(gates.CZ(3, 4))
                 c.add(gates.CZ(4, 5))
 
-            if self.nqubits == 7:
+            elif self.nqubits == 7:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 4))
                 c.add(gates.CZ(1, 2))
@@ -243,7 +238,7 @@ class Qclassifier:
                 c.add(gates.CZ(4, 5))
                 c.add(gates.CZ(5, 6))
 
-            if self.nqubits == 8:
+            elif self.nqubits == 8:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 4))
                 c.add(gates.CZ(1, 2))
@@ -255,7 +250,7 @@ class Qclassifier:
                 c.add(gates.CZ(5, 6))
                 c.add(gates.CZ(6, 7))
 
-            if self.nqubits == 9:
+            elif self.nqubits == 9:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 2))
                 c.add(gates.CZ(0, 3))
@@ -271,7 +266,7 @@ class Qclassifier:
                 c.add(gates.CZ(6, 7))
                 c.add(gates.CZ(7, 8))
 
-            if self.nqubits == 10:
+            elif self.nqubits == 10:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 2))
                 c.add(gates.CZ(0, 3))
@@ -290,7 +285,7 @@ class Qclassifier:
                 c.add(gates.CZ(7, 8))
                 c.add(gates.CZ(7, 9))
 
-            if self.nqubits == 11:
+            elif self.nqubits == 11:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 2))
                 c.add(gates.CZ(1, 3))
@@ -311,7 +306,7 @@ class Qclassifier:
                 c.add(gates.CZ(8, 10))
                 c.add(gates.CZ(9, 10))
 
-            if self.nqubits == 12:
+            elif self.nqubits == 12:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 2))
                 c.add(gates.CZ(1, 3))
@@ -333,7 +328,7 @@ class Qclassifier:
                 c.add(gates.CZ(9, 11))
                 c.add(gates.CZ(10, 11))
 
-            if self.nqubits == 13:
+            elif self.nqubits == 13:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 3))
                 c.add(gates.CZ(1, 2))
@@ -356,7 +351,7 @@ class Qclassifier:
                 c.add(gates.CZ(10, 12))
                 c.add(gates.CZ(11, 12))
 
-            if self.nqubits == 14:
+            elif self.nqubits == 14:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 3))
                 c.add(gates.CZ(1, 2))
@@ -380,7 +375,7 @@ class Qclassifier:
                 c.add(gates.CZ(11, 12))
                 c.add(gates.CZ(12, 13))
 
-            if self.nqubits == 15:
+            elif self.nqubits == 15:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 4))
                 c.add(gates.CZ(1, 2))
@@ -405,7 +400,7 @@ class Qclassifier:
                 c.add(gates.CZ(12, 13))
                 c.add(gates.CZ(13, 14))
 
-            if self.nqubits == 16:
+            elif self.nqubits == 16:
                 c.add(gates.CZ(0, 1))
                 c.add(gates.CZ(0, 4))
                 c.add(gates.CZ(1, 2))
