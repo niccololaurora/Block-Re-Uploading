@@ -12,20 +12,8 @@ __pycache__/
 /trainability/
 /ansatz_draw/
 
-history_no_tf.txt
-history_tf.txt
-profiling_stats.txt
-comparison.txt
-profiling_stats.txt
-epochs.txt
-history.txt
-grad.txt
-grad_cross.txt
-grad_w_fid.txt
-grad_fid.txt
-summary.txt
+*.txt
 file*
 prova.py
 
-pred_a.pdf
-pred_b.pdf
+*.pdf
