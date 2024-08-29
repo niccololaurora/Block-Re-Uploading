@@ -30,43 +30,59 @@ def main():
 
     # Parameters to adjust
     dataset = "digits"
-    nqubits = 4
-    local = False
-    resize = 14
-    epochs = 50
+    nqubits = 1
+    local = True
+    resize = 4
+    epochs = 2
     entanglement = True
-    pretraining = True
-    iterazione = str(2)
+    pretraining = False
+    iterazione = str(1)
 
     # Standard parameters
     nclasses = 2
     learning_rate = 0.001
     loss = "crossentropy"
-    training_size = 250 * nclasses
-    validation_size = 250 * nclasses
-    test_size = 100 * nclasses
-    batch_size = 50
-    # layers = [1, 2, 3, 4, 5, 6]
-    layers = args.layer
+    training_size = 10 * nclasses
+    validation_size = 10 * nclasses
+    test_size = 10 * nclasses
+    batch_size = 5
+    layers = 1
     seed = 42
     # Options for pooling: ["max", "average", "no"]
     pooling = "max"
     block_width, block_height, positions = blocks_details(resize, nqubits)
 
+    # =============
+    # Pretraining
     trained_params = None
+    pretrain_name = "NO-PRE"
     if pretraining == True:
         parameters_from_outside = np.load(
             f"statistics_{iterazione}/trained_params_q{nqubits}-l{layers}.npy"
         )
         trained_params = tf.Variable(parameters_from_outside, dtype=tf.float32)
+        pretrain_name = f"PRE-{iterazione}"
 
+    # =============
+    # Folders
     file_path = LOCAL_FOLDER / "statistics"
     if not os.path.exists("statistics"):
         os.makedirs("statistics", exist_ok=True)
     if not os.path.exists("plots"):
         os.makedirs("plots", exist_ok=True)
 
-    with open(f"summary_{iterazione}.txt", "w") as file:
+    # =============
+    # Summary
+    entanglement_name = 0
+    if entanglement == True:
+        entanglement_name = "E"
+    else:
+        entanglement_name = "NO-E"
+
+    with open(
+        f"Summary-Q{nqubits}-L{layers}-{resize}x{resize}-{pooling.capitalize()}-{entanglement_name}-{pretrain_name}.txt",
+        "w",
+    ) as file:
         print(f"Dataset: {dataset}", file=file)
         print(f"Locality: {str(local)}", file=file)
         print(f"Qubits: {nqubits}", file=file)
@@ -79,6 +95,8 @@ def main():
         print(f"Dimension: {resize}", file=file)
         print(f"Pretraining: {str(pretraining)}", file=file)
 
+    # =============
+    # Training
     # for su i qubits
     for k in range(1):
         accuracy_qubits = []
