@@ -10,7 +10,6 @@ __pycache__/
 /statistics/
 /plots/
 /trainability/
-/ansatz_draw/
 
 *.txt
 file*
