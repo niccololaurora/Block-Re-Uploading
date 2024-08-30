@@ -335,7 +335,7 @@ def blocks_details(size, nqubits):
 
         elif nqubits == 9:
             block_width = [4] + [1] * 8
-            block_height = [1] * 5 + [4] * 8
+            block_height = [1] * 5 + [2] * 4
             positions = [
                 (0, 0),
                 (1, 0),
