@@ -25,43 +25,48 @@ def main():
     # Configuration
     # ==============
     parser = argparse.ArgumentParser()
+    parser.add_argument("--qubit", type=int, required=True, help="Number of qubits")
     parser.add_argument("--layer", type=int, required=True, help="Number of layers")
     args = parser.parse_args()
 
     # Parameters to adjust
     dataset = "digits"
-    nqubits = 1
+    resize = 8
+    epochs = 50
     local = True
-    resize = 4
-    epochs = 2
     entanglement = True
+    pooling = "no"
     pretraining = False
     iterazione = str(1)
 
     # Standard parameters
+    layers = args.layer
+    nqubits = args.qubit
     nclasses = 2
+    # 'target' --> Se voglio allenare finche non si raggiunge una loss fissata
+    # 'No' --> Se voglio allenare per un numero fissato di epoche senza early stopping (1E-3)
+    # 'fluctuation' --> Se voglio allenare finche la varianza è sotto una certa soglia (1E-4)
+    criterion = "fluctuation"
     learning_rate = 0.001
     loss = "crossentropy"
-    training_size = 10 * nclasses
-    validation_size = 10 * nclasses
-    test_size = 10 * nclasses
-    batch_size = 5
-    layers = 1
+    training_size = 250 * nclasses
+    validation_size = 250 * nclasses
+    test_size = 100 * nclasses
+    batch_size = 50
     seed = 42
     # Options for pooling: ["max", "average", "no"]
-    pooling = "max"
     block_width, block_height, positions = blocks_details(resize, nqubits)
 
     # =============
     # Pretraining
     trained_params = None
-    pretrain_name = "NO-PRE"
+    pretrain_name = "Nopre"
     if pretraining == True:
         parameters_from_outside = np.load(
             f"statistics_{iterazione}/trained_params_q{nqubits}-l{layers}.npy"
         )
         trained_params = tf.Variable(parameters_from_outside, dtype=tf.float32)
-        pretrain_name = f"PRE-{iterazione}"
+        pretrain_name = f"Pre{iterazione}"
 
     # =============
     # Folders
@@ -75,13 +80,15 @@ def main():
     # Summary
     entanglement_name = 0
     if entanglement == True:
-        entanglement_name = "E"
+        entanglement_name = "Ent"
     else:
-        entanglement_name = "NO-E"
+        entanglement_name = "NEnt"
 
+    if not os.path.exists("summary"):
+        os.makedirs("summary", exist_ok=True)
     with open(
-        f"Summary-Q{nqubits}-L{layers}-{resize}x{resize}-{pooling.capitalize()}-{entanglement_name}-{pretrain_name}.txt",
-        "w",
+        f"summary/Summary-Q{nqubits}-L{layers}-{resize}x{resize}-{pooling.capitalize()}-{entanglement_name}-{pretrain_name}.txt",
+        "a",
     ) as file:
         print(f"Dataset: {dataset}", file=file)
         print(f"Locality: {str(local)}", file=file)
@@ -96,6 +103,8 @@ def main():
         print(f"Pretraining: {str(pretraining)}", file=file)
 
     # =============
+    if not os.path.exists("epochs"):
+        os.makedirs("epochs", exist_ok=True)
     # Training
     # for su i qubits
     for k in range(1):
@@ -125,6 +134,7 @@ def main():
                 parameters_from_outside=trained_params,
                 dataset=dataset,
                 entanglement=entanglement,
+                criterion=criterion,
             )
 
             # PREDICTIONS BEFORE TRAINING
@@ -248,13 +258,15 @@ def main():
 
 
 if __name__ == "__main__":
-    profiler = cProfile.Profile()
-    profiler.enable()
+    # profiler = cProfile.Profile()
+    # profiler.enable()
     main()
-    profiler.disable()
+    # profiler.disable()
 
     # Salva le statistiche su un file
+    """
     with open("profiling_stats.txt", "w") as f:
         stats = pstats.Stats(profiler, stream=f)
         stats.sort_stats(pstats.SortKey.TIME)
         stats.print_stats()
+    """

@@ -1,41 +1,54 @@
-from data import initialize_data
+import sys
+import os
 import matplotlib.pyplot as plt
 
+# Get the parent directory of the current file (test.py)
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+# Add the parent directory to sys.path
+sys.path.append(parent_dir)
+
+from data import initialize_data_new
+
 dataset = "digits"
-training_size = 10
-test_size = 10
-validation_size = 10
-resize = 18
+training_size = 100
+test_size = 200
+validation_size = 1000
+resize = [4, 8]
 seed = 1
 
-train, test, val = initialize_data(
-    dataset, training_size, test_size, validation_size, resize, seed
-)
 
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2, figsize=(18, 6))
 
-print(f"Training {len(train[0])}")
-print(f"Validation {len(val[0])}")
-print(f"Test {len(test[0])}")
-print("=" * 30)
-print(f"Training size {train[0].shape}")
-print(f"Validation size {val[0].shape}")
-print(f"Test size {test[0].shape}")
+lista_assi = [ax1, ax3]
+lista_assi_2 = [ax2, ax4]
 
+for r, a, b in zip(resize, lista_assi, lista_assi_2):
+    train, test, val = initialize_data_new(
+        dataset, training_size, test_size, validation_size, r, seed
+    )
 
-WIDTH = 0.5
-fig, (ax1, ax2) = plt.subplots(
-    ncols=2, figsize=(10 * WIDTH * 3 / 2, 10 * WIDTH * 6 / 8)
-)
+    print(f"Type {type(train)}")
+    print(f"Type {type(train[0])}")
+    print(f"Type {type(train[1])}")
+    print("=" * 30)
+    print(f"Training size {train[0].shape}")
+    print(f"Validation size {val[0].shape}")
+    print(f"Test size {test[0].shape}")
 
-ax1.imshow(train[0][0], cmap="gray")
-ax2.imshow(train[0][7], cmap="gray")
+    a.imshow(train[0][0], cmap="gray")
+    b.imshow(train[0][7], cmap="gray")
 
-ax2.set_yticks([])
-ax1.set_yticks([])
-ax2.set_xticks([])
-ax1.set_xticks([])
+    b.set_yticks([])
+    a.set_yticks([])
+    b.set_xticks([])
+    a.set_xticks([])
 
-# fig.suptitle("4 qubits: 3 layers", fontsize=12)
-plt.tight_layout()
-name = f"Prova-{resize}x{resize}-.pdf"
-plt.savefig(name, bbox_inches="tight")
+# Minimize the space between columns
+plt.subplots_adjust(wspace=0.0)
+
+# Optionally, you can use tight_layout if necessary, but sometimes it may add space.
+# plt.tight_layout()
+
+name = f"Digits-complete.pdf"
+plt.savefig(name, bbox_inches="tight")  # Save the figure with minimal extra space

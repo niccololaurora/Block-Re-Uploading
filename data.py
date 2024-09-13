@@ -36,6 +36,157 @@ def load_data(resize, selected_classes):
     )
 
 
+def initialize_data_new(
+    dataset, training_size, test_size, validation_size, resize, seed
+):
+    """Method which prepares the validation, training and test datasets."""
+
+    # ==============
+    # Choosing the seed is necessary to control the shuffling and
+    # the digits that will be selected
+    x_train, y_train, x_test, y_test = 0, 0, 0, 0
+    digits = 0
+    np.random.seed(seed)
+
+    # ==============
+    # Choosing dataset and digits/clothes
+    if dataset == "digits":
+        digits = [0, 1]
+        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+    if dataset == "fashion":
+        # Fashion: boot and trousers
+        digits = [1, 9]
+        (x_train, y_train), (x_test, y_test) = (
+            tf.keras.datasets.fashion_mnist.load_data()
+        )
+
+    # ==============
+    # Select classes of interest
+    mask_train = np.isin(y_train, digits)
+    mask_test = np.isin(y_test, digits)
+    x_train, y_train = x_train[mask_train], y_train[mask_train]
+    x_test, y_test = x_test[mask_test], y_test[mask_test]
+
+    # ==============
+    # Normalize pixel values to be between 0 and 1
+    x_train = x_train / 255.0
+    x_test = x_test / 255.0
+
+    # ==============
+    # Resizing
+    x_train = tf.expand_dims(x_train, axis=-1)
+    x_test = tf.expand_dims(x_test, axis=-1)
+
+    x_train = tf.image.resize(x_train, [resize, resize])
+    x_test = tf.image.resize(x_test, [resize, resize])
+
+    # ==============
+    # Converting labels to tf.tensor
+    y_train = tf.convert_to_tensor(y_train, dtype=tf.float32)
+    y_test = tf.convert_to_tensor(y_test, dtype=tf.float32)
+
+    # Normalize labels to [0, 1]
+    if len(digits) == 2:
+        y_train = np.where(y_train == digits[0], 0, 1)
+        y_test = np.where(y_test == digits[0], 0, 1)
+
+    # ==============
+    # Concatenate data
+    images = np.concatenate((x_train, x_test), axis=0)
+    labels = np.concatenate((y_train, y_test), axis=0)
+
+    # ==============
+    # Check for duplicates
+    images_vectors = images.reshape(len(images), -1)
+    unique_images, unique_indices = np.unique(images_vectors, axis=0, return_index=True)
+
+    # Crea un nuovo dataset senza duplicati
+    images_no_duplicates = images[unique_indices]
+    labels_no_duplicates = labels[unique_indices]
+
+    # Verifica il numero di immagini dopo aver rimosso i duplicati
+    print(f"Numero di immagini originali: {len(images)}")
+    print(f"Numero di immagini senza duplicati: {len(images_no_duplicates)}")
+    print(
+        f"Numero di immagini con duplicato: {len(images) - len(images_no_duplicates)}"
+    )
+
+    # ==============
+    # Perfect balance of the classes
+    indices_dict = {}
+    for class_label in digits:
+        # Training
+        indeces_class = np.where(labels_no_duplicates == class_label)[0]
+        sampled_indices_train = np.random.choice(
+            indeces_class,
+            size=(training_size + validation_size + test_size) // len(digits),
+            replace=False,
+        )
+        indices_dict[class_label] = sampled_indices_train
+
+    # TRAINING, VALIDATION and TESTING INDECES
+    train_indices_dict = {}
+    validation_indices_dict = {}
+    test_indices_dict = {}
+    num_per_class = (training_size + validation_size + test_size) // len(digits)
+    num_train_per_class = training_size // len(digits)
+    num_validation_per_class = validation_size // len(digits)
+    num_test_per_class = test_size // len(digits)
+
+    for class_label, indices in indices_dict.items():
+        # Shuffle indeces
+        np.random.shuffle(indices)
+
+        # Divide gli indici in training, validation e test set
+        train_indices = indices[:num_train_per_class]
+        validation_indices = indices[
+            num_train_per_class : num_train_per_class + num_validation_per_class
+        ]
+        test_indices = indices[num_train_per_class + num_validation_per_class :]
+
+        # Assegna agli dizionari
+        train_indices_dict[class_label] = train_indices
+        validation_indices_dict[class_label] = validation_indices
+        test_indices_dict[class_label] = test_indices
+
+    # Concatenate the training, validation and testing indeces of the different digits
+    train_indices = np.concatenate(list(train_indices_dict.values()))
+    validation_indices = np.concatenate(list(validation_indices_dict.values()))
+    test_indices = np.concatenate(list(test_indices_dict.values()))
+
+    # Shuffle the training, validation and testing indeces
+    np.random.shuffle(train_indices)
+    np.random.shuffle(validation_indices)
+    np.random.shuffle(test_indices)
+
+    # Define the training, validation and testing dataset
+    x_val = images_no_duplicates[validation_indices]
+    y_val = images_no_duplicates[validation_indices]
+    x_train = images_no_duplicates[train_indices]
+    y_train = images_no_duplicates[train_indices]
+    x_test = images_no_duplicates[test_indices]
+    y_test = images_no_duplicates[test_indices]
+
+    # ==============
+    # Converting labels to tf.tensor
+    x_train = tf.convert_to_tensor(x_train, dtype=tf.float32)
+    x_test = tf.convert_to_tensor(x_test, dtype=tf.float32)
+    x_val = tf.convert_to_tensor(x_val, dtype=tf.float32)
+    y_train = tf.convert_to_tensor(y_train, dtype=tf.float32)
+    y_test = tf.convert_to_tensor(y_test, dtype=tf.float32)
+    y_val = tf.convert_to_tensor(y_val, dtype=tf.float32)
+
+    training_data = (x_train, y_train)
+    test_data = (x_test, y_test)
+    validation_data = (x_val, y_val)
+
+    return (
+        training_data,
+        test_data,
+        validation_data,
+    )
+
+
 def initialize_data(dataset, training_size, test_size, validation_size, resize, seed):
     """Method which prepares the validation, training and test datasets."""
 

@@ -46,6 +46,9 @@ class Qclassifier:
         parameters_from_outside,
         dataset,
         entanglement,
+        criterion,
+        threshold_target=1e-3,
+        threshold_fluctuation=1e-4,
     ):
 
         np.random.seed(seed_value)
@@ -64,6 +67,9 @@ class Qclassifier:
         self.learning_rate = learning_rate
         self.alpha = tf.Variable(tf.random.normal((nclasses,)), dtype=tf.float32)
         self.outputs = 0
+        self.criterion = criterion
+        self.threshold_target = threshold_target
+        self.threshold_fluctuation = threshold_fluctuation
 
         # IMAGE
         self.resize = resize
@@ -129,7 +135,7 @@ class Qclassifier:
         blocks = create_blocks(x, self.block_width, self.block_height, self.positions)
         pooling_values = pooling_creator(blocks, self.nqubits, self.pooling)
 
-        # Dimensioni dei blocch: necessario quando ho blocchi di forme diverse
+        # Dimensioni dei blocchi: necessario quando ho blocchi di forme diverse
         sizes = block_sizes(self.resize, self.block_width, self.block_height)
 
         angles = []
@@ -825,9 +831,11 @@ class Qclassifier:
                 break
 
             # Entanglement between layers
+            """
             if self.entanglement == True:
                 if self.nqubits != 1:
                     circuit += self.entanglement_circuit()
+            """
 
         return circuit
 
@@ -960,12 +968,6 @@ class Qclassifier:
     def train_step(self, x_batch, y_batch, optimizer):
         """Evaluate loss function on one train batch.
 
-        Args:
-            batch_size (int): number of samples in one training batch.
-            encoder (qibo.models.Circuit): variational quantum circuit.
-            params (tf.Variable): parameters of the circuit.
-            vector (tf.Tensor): train sample, in the form of 1d vector.
-
         Returns:
             loss (tf.Variable): average loss of the training batch.
         """
@@ -1014,8 +1016,6 @@ class Qclassifier:
                 self.validation[0], self.validation[1], self.validation_size
             )
 
-        print(f"Predictions Validation {predictions}")
-        print(f"Labels Validation {self.validation[1]}")
         accuracy = self.accuracy(predictions, self.validation[1])
 
         return loss, accuracy
@@ -1044,6 +1044,7 @@ class Qclassifier:
             outputs_model = []
             absolute_gradients = []
             # self.train = shuffle(self.train)
+            print(f"=" * 60)
             print(f"Epoch {epoch}")
             for i in range(number_of_batches):
                 print("=" * 20)
@@ -1058,30 +1059,37 @@ class Qclassifier:
                 absolute_gradients.extend(abs_grads.numpy())
 
                 with open(
-                    "epochs" + f"_q{self.nqubits}_l{self.nlayers}_" + ".txt", "a"
+                    "epochs/epochs" + f"_q{self.nqubits}_l{self.nlayers}" + ".txt", "a"
                 ) as file:
+                    print(f"=" * 60, file=file)
                     print(f"Epoch {epoch}", file=file)
                     print(f"Batch {i}", file=file)
                     print(f"Training Loss: {loss}", file=file)
 
             absolute_gradients_epochs[epoch] = tf.reduce_mean(absolute_gradients)
             trained_params[epoch] = self.vparams
+
+            # Training
             history_train_accuracy[epoch] = self.accuracy(outputs_model, self.train[1])
             history_train_loss[epoch] = loss
 
-            print("%" * 30)
-            print("Validation step")
+            # Validation
             history_val_loss[epoch], history_val_accuracy[epoch] = self.val_step()
-            print(f"Validation loss {history_val_loss[epoch]}")
-            print(f"Validation accuracy {history_val_accuracy[epoch]}")
-            print("%" * 30)
 
             with open(
-                "epochs" + f"_q{self.nqubits}_l{self.nlayers}_" + ".txt", "a"
+                "epochs/epochs" + f"_q{self.nqubits}_l{self.nlayers}" + ".txt", "a"
             ) as file:
                 print(f"Accuracy training {history_train_accuracy[epoch]}", file=file)
                 print(f"Validation loss {history_val_loss[epoch]}", file=file)
                 print(f"Accuracy validation {history_val_accuracy[epoch]}", file=file)
+
+            # Convergence?
+            if self.criterion == "fluctuation":
+                if self.convergence_fluctuation(epoch + 1, history_train_loss):
+                    break
+            elif self.criterion == "target":
+                if self.convergence_target(epoch + 1, loss):
+                    break
 
         return (
             absolute_gradients_epochs,
@@ -1091,3 +1099,16 @@ class Qclassifier:
             history_train_accuracy,
             history_val_accuracy,
         )
+
+    def convergence_target(self, epoch, loss):
+        if epoch > 1 and loss < self.threshold_target:
+            return True
+        return False
+
+    def convergence_fluctuation(self, epoch, history_train_loss):
+        if epoch > 1:
+            loss_variance = np.var(self.history_train_loss[:epoch])
+
+            if loss_variance < self.threshold_fluctuation:
+                return True
+        return False
