@@ -10,10 +10,7 @@ from qibo.symbols import X, Y, Z
 LOCAL_FOLDER = Path(__file__).parent
 
 
-def plot_absolute_gradients(qubit, layers, epochs, absolute_gradients):
-    # Ensure that file_path exists
-    file_path = LOCAL_FOLDER / "plots"
-    file_path.mkdir(parents=True, exist_ok=True)
+def plot_absolute_gradients(qubit, layers, epochs, absolute_gradients, file_path_plots):
 
     # Define plot settings
     WIDTH = 0.5
@@ -36,10 +33,10 @@ def plot_absolute_gradients(qubit, layers, epochs, absolute_gradients):
     plt.tight_layout()
 
     # Save the plot
-    plt.savefig(file_path / f"absolute_gradients_q{qubit}-l{layers}.pdf")
+    plt.savefig(file_path_plots / f"absolute_gradients_q{qubit}-l{layers}.pdf")
 
 
-def plot_predictions(predictions, x_data, y_data, name, rows, columns):
+def plot_predictions(predictions, x_data, y_data, file_path_plots, name, rows, columns):
     """Function to plot 25 classifier's predictions.
     It will plot a table 5x5 of MNIST images: each image will have above the classifier's prediction.
 
@@ -52,7 +49,6 @@ def plot_predictions(predictions, x_data, y_data, name, rows, columns):
     Returns:
         Predictions table plot.
     """
-    file_path = LOCAL_FOLDER / "plots"
     fig, ax = plt.subplots(nrows=rows, ncols=columns, figsize=(12, 12))
 
     for i in range(rows):
@@ -67,41 +63,27 @@ def plot_predictions(predictions, x_data, y_data, name, rows, columns):
             ax[i][j].set_xticks([])
             ax[i][j].set_yticks([])
 
-    name_file = file_path / name
-    plt.savefig(name_file)
+    plt.savefig(file_path_plots / name)
     plt.close()
 
 
-def plot_sphere(qubit, layers, labels, label_states, final_states_b, final_states_a):
-    file_path = LOCAL_FOLDER / "plots"
+def plot_sphere(labels, label_states, final_states, file_path_plots, name):
     color = ["r", "b", "g", "magenta", "yellow", "grayx"]
 
-    # Sphere before training
     sfera = Bloch()
     labels = np.array(labels, dtype=int)
-    for x, y in zip(final_states_b, labels):
+    for x, y in zip(final_states, labels):
         sfera.add_state(x, "point", color[y])
 
     for x in label_states:
         sfera.add_state(x, "vector", "black")
 
-    name = f"q{qubit}-l{layers}-sphere-before.pdf"
-    sfera.plot(file_path / name, save=True)
-
-    # Sphere after training
-    sfera = Bloch()
-    for x, y in zip(final_states_a, labels):
-        sfera.add_state(x, "point", color[y])
-
-    for x in label_states:
-        sfera.add_state(x, "vector", "black")
-
-    name = file_path / f"q{qubit}-l{layers}-sphere-after.pdf"
-    sfera.plot(file_path / name, save=True)
+    sfera.plot(file_path_plots / name, save=True)
 
 
-def plot_loss_accuracy(qubit, layers, epochs, train_loss, val_loss, train_acc, val_acc):
-    file_path = LOCAL_FOLDER / "plots"
+def plot_loss_accuracy(
+    qubit, layers, epochs, train_loss, val_loss, train_acc, val_acc, file_path_plots
+):
     WIDTH = 0.5
 
     epochs = np.arange(0, epochs, 1)
@@ -153,7 +135,7 @@ def plot_loss_accuracy(qubit, layers, epochs, train_loss, val_loss, train_acc, v
     # fig.suptitle("4 qubits: 3 layers", fontsize=12)
     plt.tight_layout()
     name = f"q{qubit}-" + f"l{layers}" + "-loss-accuracy.pdf"
-    plt.savefig(file_path / name, bbox_inches="tight")
+    plt.savefig(file_path_plots / name, bbox_inches="tight")
 
 
 class Bloch:

@@ -27,31 +27,38 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--qubit", type=int, required=True, help="Number of qubits")
     parser.add_argument("--layer", type=int, required=True, help="Number of layers")
+    parser.add_argument(
+        "--learning_rate", type=float, required=True, help="Learning Rate"
+    )
     args = parser.parse_args()
 
     # Parameters to adjust
     dataset = "digits"
     resize = 8
+
     epochs = 50
+
     local = True
-    entanglement = True
+    entanglement = False
     pooling = "no"
     pretraining = False
+
+    criterion = "No"
     iterazione = str(1)
 
     # Standard parameters
     layers = args.layer
     nqubits = args.qubit
-    nclasses = 2
+    learning_rate = args.learning_rate
     # 'target' --> Se voglio allenare finche non si raggiunge una loss fissata
     # 'No' --> Se voglio allenare per un numero fissato di epoche senza early stopping (1E-3)
     # 'fluctuation' --> Se voglio allenare finche la varianza è sotto una certa soglia (1E-4)
-    criterion = "fluctuation"
-    learning_rate = 0.001
+
     loss = "crossentropy"
+    nclasses = 2
     training_size = 250 * nclasses
-    validation_size = 250 * nclasses
-    test_size = 100 * nclasses
+    validation_size = 50 * nclasses
+    test_size = 10 * nclasses
     batch_size = 50
     seed = 42
     # Options for pooling: ["max", "average", "no"]
@@ -70,11 +77,12 @@ def main():
 
     # =============
     # Folders
-    file_path = LOCAL_FOLDER / "statistics"
-    if not os.path.exists("statistics"):
-        os.makedirs("statistics", exist_ok=True)
-    if not os.path.exists("plots"):
-        os.makedirs("plots", exist_ok=True)
+    file_path_stats = LOCAL_FOLDER / f"statistics"
+    if not os.path.exists(f"statistics"):
+        os.makedirs(f"statistics", exist_ok=True)
+    file_path_plots = LOCAL_FOLDER / f"plots"
+    if not os.path.exists(f"plots"):
+        os.makedirs(f"plots", exist_ok=True)
 
     # =============
     # Summary
@@ -84,10 +92,10 @@ def main():
     else:
         entanglement_name = "NEnt"
 
-    if not os.path.exists("summary"):
-        os.makedirs("summary", exist_ok=True)
+    if not os.path.exists(f"summary"):
+        os.makedirs(f"summary", exist_ok=True)
     with open(
-        f"summary/Summary-Q{nqubits}-L{layers}-{resize}x{resize}-{pooling.capitalize()}-{entanglement_name}-{pretrain_name}.txt",
+        f"summary-{learning_rate}/Summary-Q{nqubits}-L{layers}-{resize}x{resize}-{pooling.capitalize()}-{entanglement_name}-{pretrain_name}-lr{learning_rate}.txt",
         "a",
     ) as file:
         print(f"Dataset: {dataset}", file=file)
@@ -103,8 +111,8 @@ def main():
         print(f"Pretraining: {str(pretraining)}", file=file)
 
     # =============
-    if not os.path.exists("epochs"):
-        os.makedirs("epochs", exist_ok=True)
+    if not os.path.exists(f"epochs"):
+        os.makedirs(f"epochs", exist_ok=True)
     # Training
     # for su i qubits
     for k in range(1):
@@ -142,11 +150,13 @@ def main():
             _, predictions, final_states_before = my_class.prediction_function(val_set)
             label_states = create_target(nclasses)
 
+            name_file = f"pred_before_q{nqubits}_l{layers}_lr{learning_rate}" + ".pdf"
             plot_predictions(
                 predictions,
                 val_set[0],
                 val_set[1],
-                "pred_before_" + f"q{nqubits}" + f"l{layers}_" + ".pdf",
+                file_path_plots,
+                name_file,
                 4,
                 4,
             )
@@ -157,9 +167,11 @@ def main():
                 "label_states": label_states,
             }
 
-            name_file = "points_b_" + f"q{nqubits}-" + f"l{layers}" + ".npz"
+            name_file = (
+                f"points_b_" + f"q{nqubits}-" + f"l{layers}_lr{learning_rate}" + ".npz"
+            )
             np.savez(
-                file_path / name_file,
+                file_path_stats / name_file,
                 dict_b,
             )
 
@@ -174,11 +186,13 @@ def main():
 
             _, predictions, final_states_after = my_class.prediction_function(val_set)
 
+            name_file = f"pred_after_q{nqubits}_l{layers}_lr{learning_rate}" + ".pdf"
             plot_predictions(
                 predictions,
                 val_set[0],
                 val_set[1],
-                "pred_after_" + f"q{nqubits}-" + f"l{layers}_" + ".pdf",
+                file_path_plots,
+                name_file,
                 4,
                 4,
             )
@@ -190,59 +204,81 @@ def main():
             }
 
             # SAVING
-            name_file = "points_a_" + f"q{nqubits}-" + f"l{layers}" + ".npz"
+            name_file = (
+                "points_a_" + f"q{nqubits}-" + f"l{layers}_lr{learning_rate}" + ".npz"
+            )
             np.savez(
-                file_path / name_file,
+                file_path_stats / name_file,
                 dict_a,
             )
 
-            name_file = "abs_grads_" + f"q{nqubits}-" + f"l{layers}" + ".npy"
+            name_file = (
+                "abs_grads_" + f"q{nqubits}-" + f"l{layers}_lr{learning_rate}" + ".npy"
+            )
             np.save(
-                file_path / name_file,
+                file_path_stats / name_file,
                 absolute_gradients,
             )
 
-            name_file = "trained_params_" + f"q{nqubits}-" + f"l{layers}" + ".npy"
+            name_file = (
+                "trained_params_"
+                + f"q{nqubits}-"
+                + f"l{layers}_lr{learning_rate}"
+                + ".npy"
+            )
             np.save(
-                file_path / name_file,
+                file_path_stats / name_file,
                 trained_params,
             )
 
-            name_file = "history_train_loss_" + f"q{nqubits}-" + f"l{layers}" + ".npy"
+            name_file = (
+                "history_train_loss_"
+                + f"q{nqubits}-"
+                + f"l{layers}_lr{learning_rate}"
+                + ".npy"
+            )
             np.save(
-                file_path / name_file,
+                file_path_stats / name_file,
                 history_train_loss,
             )
 
-            name_file = "history_val_loss_" + f"q{nqubits}-" + f"l{layers}" + ".npy"
+            name_file = (
+                "history_val_loss_"
+                + f"q{nqubits}-"
+                + f"l{layers}_lr{learning_rate}"
+                + ".npy"
+            )
             np.save(
-                file_path / name_file,
+                file_path_stats / name_file,
                 history_val_loss,
             )
 
             name_file = (
-                "history_train_accuracy_" + f"q{nqubits}-" + f"l{layers}" + ".npy"
+                f"history_train_accuracy_q{nqubits}-l{layers}_lr{learning_rate}"
+                + ".npy"
             )
             np.save(
-                file_path / name_file,
+                file_path_stats / name_file,
                 history_train_accuracy,
             )
 
-            name_file = "history_val_accuracy_" + f"q{nqubits}-" + f"l{layers}" + ".npy"
+            name_file = (
+                f"history_val_accuracy_q{nqubits}-l{layers}_lr{learning_rate}" + ".npy"
+            )
             np.save(
-                file_path / name_file,
+                file_path_stats / name_file,
                 history_val_accuracy,
             )
 
             # PLOTTING
             if nqubits == 1:
+                name = f"sphere_q{nqubits}_l{layers}-B.pdf"
                 plot_sphere(
-                    nqubits,
-                    layers,
-                    val_set[1],
-                    label_states,
-                    final_states_before,
-                    final_states_after,
+                    val_set[1], label_states, final_states_before, file_path_plots, name
+                )
+                name = f"sphere_q{nqubits}_l{layers}-A.pdf"
+                plot_sphere(
+                    val_set[1], label_states, final_states_after, file_path_plots, name
                 )
             plot_loss_accuracy(
                 nqubits,
@@ -252,9 +288,12 @@ def main():
                 history_val_loss,
                 history_train_accuracy,
                 history_val_accuracy,
+                file_path_plots,
             )
 
-            plot_absolute_gradients(nqubits, layers, epochs, absolute_gradients)
+            plot_absolute_gradients(
+                nqubits, layers, epochs, absolute_gradients, file_path_plots
+            )
 
 
 if __name__ == "__main__":

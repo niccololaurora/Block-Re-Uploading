@@ -1059,7 +1059,10 @@ class Qclassifier:
                 absolute_gradients.extend(abs_grads.numpy())
 
                 with open(
-                    "epochs/epochs" + f"_q{self.nqubits}_l{self.nlayers}" + ".txt", "a"
+                    f"epochs/epochs"
+                    + f"_q{self.nqubits}_l{self.nlayers}_lr{self.learning_rate}"
+                    + ".txt",
+                    "a",
                 ) as file:
                     print(f"=" * 60, file=file)
                     print(f"Epoch {epoch}", file=file)
@@ -1077,7 +1080,10 @@ class Qclassifier:
             history_val_loss[epoch], history_val_accuracy[epoch] = self.val_step()
 
             with open(
-                "epochs/epochs" + f"_q{self.nqubits}_l{self.nlayers}" + ".txt", "a"
+                f"epochs/epochs"
+                + f"_q{self.nqubits}_l{self.nlayers}_lr{self.learning_rate}"
+                + ".txt",
+                "a",
             ) as file:
                 print(f"Accuracy training {history_train_accuracy[epoch]}", file=file)
                 print(f"Validation loss {history_val_loss[epoch]}", file=file)
