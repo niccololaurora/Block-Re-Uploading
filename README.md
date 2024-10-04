@@ -45,36 +45,34 @@ To use this code you need to change some parameters directly from the "main.py" 
 
 5. **entanglement**: "True" for entanglement, "False" for no entanglement (in a layer).
 
-6. **pooling**: "max" for max pooling, "no" for no pooling.
-
-7. **pretraining**: "True", "False".
+6. **pooling**: "max" for max pooling, "no" for no pooling.\\
    This flag must be "True" if you wanna load a set of pretrained parameters.
 
-8. **criterion**: "No", 'target', 'fluctuation'.
+7. **criterion**: "No", 'target', 'fluctuation'.
    This flag lets you choose the convergence/stopping criterium: "No" option means that the training will continue up to the last epoch;
    "target" option means that the training will stop when the target loss value is reached; 'fluctuation' option means that the training will stop when the
    loss' fluctuations will be within 1e-04.
-9. **iterazione**: str(1), str(2), str(3), ...
+8. **iterazione**: str(1), str(2), str(3), ...
    If you wanna conduct a train of 200 epochs and you want to split it in 4 training of 50 epochs each, you must indicate here
    the iteration step. This number will be useful to produce plots, folders, files with the correct iteration number.
 
-10. **layers**
+9. **layers**
 
-11. **nqubits**
+10. **nqubits**
 
-12. **learning_rate**
+11. **learning_rate**
 
-13. **seed_parameters**.
+12. **seed_parameters**.
     Seed to generate the parameters of the architecture.
 
-14. **loss**: "crossentropy"
+13. **loss**: "crossentropy"
     Other losses are supported, but are useless for our goals.
 
-15. **training_size**
+14. **training_size**
 
-16. **validation_size**
+15. **validation_size**
 
-17. **test_size**
+16. **test_size**
     Useless. You can put whatever number you want.
 
-18. **batch_size**
+17. **batch_size**
