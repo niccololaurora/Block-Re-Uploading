@@ -33,7 +33,8 @@ class Qclassifier:
         nepochs,
         nlayers,
         pooling,
-        seed_value,
+        seed_parameters,
+        seed_data,
         block_width,
         block_height,
         nqubits,
@@ -51,8 +52,8 @@ class Qclassifier:
         threshold_fluctuation=1e-4,
     ):
 
-        np.random.seed(seed_value)
-        tf.random.set_seed(seed_value)
+        np.random.seed(seed_parameters)
+        tf.random.set_seed(seed_parameters)
         set_backend("tensorflow")
 
         # TRAINING
@@ -67,6 +68,7 @@ class Qclassifier:
         self.learning_rate = learning_rate
         self.alpha = tf.Variable(tf.random.normal((nclasses,)), dtype=tf.float32)
         self.outputs = 0
+        self.seed = seed_parameters
         self.criterion = criterion
         self.threshold_target = threshold_target
         self.threshold_fluctuation = threshold_fluctuation
@@ -74,7 +76,7 @@ class Qclassifier:
         # IMAGE
         self.resize = resize
         self.train, self.test, self.validation = initialize_data(
-            dataset, training_size, test_size, validation_size, resize, seed_value
+            dataset, training_size, test_size, validation_size, resize, seed_data
         )
         self.positions = positions
         self.block_width = block_width
@@ -85,13 +87,14 @@ class Qclassifier:
         self.nlayers = nlayers
         self.pooling = pooling
         self.entanglement = entanglement
+        self.entanglement_between_layers = True
         self.n_embed_params = 2 * resize**2
         self.params_1layer = number_params(
             self.n_embed_params, self.nqubits, self.pooling
         )
         self.n_params = self.params_1layer * nlayers
         self.vparams = initialize_parameters(
-            self.n_params, seed_value, parameters_from_outside
+            self.n_params, seed_parameters, parameters_from_outside
         )
 
         self.hamiltonian = create_hamiltonian(self.nqubits, local=local)
@@ -831,11 +834,9 @@ class Qclassifier:
                 break
 
             # Entanglement between layers
-            """
-            if self.entanglement == True:
+            if self.entanglement_between_layers == True:
                 if self.nqubits != 1:
                     circuit += self.entanglement_circuit()
-            """
 
         return circuit
 
@@ -1059,9 +1060,7 @@ class Qclassifier:
                 absolute_gradients.extend(abs_grads.numpy())
 
                 with open(
-                    f"epochs/epochs"
-                    + f"_q{self.nqubits}_l{self.nlayers}_lr{self.learning_rate}"
-                    + ".txt",
+                    f"epochs/epochs_q{self.nqubits}_l{self.nlayers}_lr{self.learning_rate}_S{self.seed}.txt",
                     "a",
                 ) as file:
                     print(f"=" * 60, file=file)
@@ -1080,9 +1079,7 @@ class Qclassifier:
             history_val_loss[epoch], history_val_accuracy[epoch] = self.val_step()
 
             with open(
-                f"epochs/epochs"
-                + f"_q{self.nqubits}_l{self.nlayers}_lr{self.learning_rate}"
-                + ".txt",
+                f"epochs/epochs_q{self.nqubits}_l{self.nlayers}_lr{self.learning_rate}_S{self.seed}.txt",
                 "a",
             ) as file:
                 print(f"Accuracy training {history_train_accuracy[epoch]}", file=file)

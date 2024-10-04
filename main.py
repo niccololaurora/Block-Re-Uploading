@@ -30,37 +30,48 @@ def main():
     parser.add_argument(
         "--learning_rate", type=float, required=True, help="Learning Rate"
     )
+    # parser.add_argument("--seed", type=int, required=True, help="Seed")
     args = parser.parse_args()
 
+    # ====================
     # Parameters to adjust
+    # ====================
     dataset = "digits"
     resize = 8
+    epochs = 100
 
-    epochs = 50
-
+    # Circuit
     local = True
     entanglement = False
-    pooling = "no"
+    pooling = "max"
     pretraining = False
 
-    criterion = "No"
-    iterazione = str(1)
-
-    # Standard parameters
-    layers = args.layer
-    nqubits = args.qubit
-    learning_rate = args.learning_rate
     # 'target' --> Se voglio allenare finche non si raggiunge una loss fissata
     # 'No' --> Se voglio allenare per un numero fissato di epoche senza early stopping (1E-3)
     # 'fluctuation' --> Se voglio allenare finche la varianza è sotto una certa soglia (1E-4)
+    criterion = "No"
+    iterazione = str(1)
 
+    # Outside parameters
+    layers = args.layer
+    nqubits = args.qubit
+    learning_rate = args.learning_rate
+    # seed_parameters = args.seed
+    seed_parameters = 0
+
+    # Loss and classes
     loss = "crossentropy"
     nclasses = 2
-    training_size = 250 * nclasses
-    validation_size = 50 * nclasses
+
+    # Training sizes
+    training_size = 200 * nclasses
+    validation_size = 200 * nclasses
     test_size = 10 * nclasses
     batch_size = 50
-    seed = 42
+
+    # ====================
+    # ====================
+
     # Options for pooling: ["max", "average", "no"]
     block_width, block_height, positions = blocks_details(resize, nqubits)
 
@@ -95,7 +106,7 @@ def main():
     if not os.path.exists(f"summary"):
         os.makedirs(f"summary", exist_ok=True)
     with open(
-        f"summary-{learning_rate}/Summary-Q{nqubits}-L{layers}-{resize}x{resize}-{pooling.capitalize()}-{entanglement_name}-{pretrain_name}-lr{learning_rate}.txt",
+        f"summary/Summary-Q{nqubits}-L{layers}-{resize}x{resize}-{pooling.capitalize()}-{entanglement_name}-{pretrain_name}-lr{learning_rate}-S{seed_parameters}.txt",
         "a",
     ) as file:
         print(f"Dataset: {dataset}", file=file)
@@ -109,6 +120,7 @@ def main():
         print(f"Sizes: (T, V) = ({training_size}, {validation_size})", file=file)
         print(f"Dimension: {resize}", file=file)
         print(f"Pretraining: {str(pretraining)}", file=file)
+        print(f"Seed: {str(seed_parameters)}", file=file)
 
     # =============
     if not os.path.exists(f"epochs"):
@@ -128,7 +140,8 @@ def main():
                 nepochs=epochs,
                 batch_size=batch_size,
                 nlayers=layers,
-                seed_value=seed,
+                seed_parameters=seed_parameters,
+                seed_data=0,
                 nqubits=nqubits,
                 resize=resize,
                 nclasses=nclasses,
@@ -145,12 +158,17 @@ def main():
                 criterion=criterion,
             )
 
+            my_class.print_circuit()
+
             # PREDICTIONS BEFORE TRAINING
             val_set = my_class.get_val_set()
             _, predictions, final_states_before = my_class.prediction_function(val_set)
             label_states = create_target(nclasses)
 
-            name_file = f"pred_before_q{nqubits}_l{layers}_lr{learning_rate}" + ".pdf"
+            name_file = (
+                f"pred_before_q{nqubits}_l{layers}_lr{learning_rate}_S{seed_parameters}"
+                + ".pdf"
+            )
             plot_predictions(
                 predictions,
                 val_set[0],
@@ -167,9 +185,7 @@ def main():
                 "label_states": label_states,
             }
 
-            name_file = (
-                f"points_b_" + f"q{nqubits}-" + f"l{layers}_lr{learning_rate}" + ".npz"
-            )
+            name_file = f"points_b_q{nqubits}-l{layers}_lr{learning_rate}_S{seed_parameters}.npz"
             np.savez(
                 file_path_stats / name_file,
                 dict_b,
@@ -186,7 +202,7 @@ def main():
 
             _, predictions, final_states_after = my_class.prediction_function(val_set)
 
-            name_file = f"pred_after_q{nqubits}_l{layers}_lr{learning_rate}" + ".pdf"
+            name_file = f"pred_after_q{nqubits}_l{layers}_lr{learning_rate}_S{seed_parameters}.pdf"
             plot_predictions(
                 predictions,
                 val_set[0],
@@ -204,67 +220,43 @@ def main():
             }
 
             # SAVING
-            name_file = (
-                "points_a_" + f"q{nqubits}-" + f"l{layers}_lr{learning_rate}" + ".npz"
-            )
+            name_file = f"points_a_q{nqubits}-l{layers}_lr{learning_rate}_S{seed_parameters}.npz"
             np.savez(
                 file_path_stats / name_file,
                 dict_a,
             )
 
-            name_file = (
-                "abs_grads_" + f"q{nqubits}-" + f"l{layers}_lr{learning_rate}" + ".npy"
-            )
+            name_file = f"abs_grads_q{nqubits}-l{layers}_lr{learning_rate}_S{seed_parameters}.npy"
             np.save(
                 file_path_stats / name_file,
                 absolute_gradients,
             )
 
-            name_file = (
-                "trained_params_"
-                + f"q{nqubits}-"
-                + f"l{layers}_lr{learning_rate}"
-                + ".npy"
-            )
+            name_file = f"trained_params_q{nqubits}-l{layers}_lr{learning_rate}_S{seed_parameters}.npy"
             np.save(
                 file_path_stats / name_file,
                 trained_params,
             )
 
-            name_file = (
-                "history_train_loss_"
-                + f"q{nqubits}-"
-                + f"l{layers}_lr{learning_rate}"
-                + ".npy"
-            )
+            name_file = f"history_train_loss_q{nqubits}-l{layers}_lr{learning_rate}_S{seed_parameters}.npy"
             np.save(
                 file_path_stats / name_file,
                 history_train_loss,
             )
 
-            name_file = (
-                "history_val_loss_"
-                + f"q{nqubits}-"
-                + f"l{layers}_lr{learning_rate}"
-                + ".npy"
-            )
+            name_file = f"history_val_loss_q{nqubits}-l{layers}_lr{learning_rate}_S{seed_parameters}.npy"
             np.save(
                 file_path_stats / name_file,
                 history_val_loss,
             )
 
-            name_file = (
-                f"history_train_accuracy_q{nqubits}-l{layers}_lr{learning_rate}"
-                + ".npy"
-            )
+            name_file = f"history_train_accuracy_q{nqubits}-l{layers}_lr{learning_rate}_S{seed_parameters}.npy"
             np.save(
                 file_path_stats / name_file,
                 history_train_accuracy,
             )
 
-            name_file = (
-                f"history_val_accuracy_q{nqubits}-l{layers}_lr{learning_rate}" + ".npy"
-            )
+            name_file = f"history_val_accuracy_q{nqubits}-l{layers}_lr{learning_rate}_S{seed_parameters}.npy"
             np.save(
                 file_path_stats / name_file,
                 history_val_accuracy,
@@ -272,11 +264,11 @@ def main():
 
             # PLOTTING
             if nqubits == 1:
-                name = f"sphere_q{nqubits}_l{layers}-B.pdf"
+                name = f"sphere_q{nqubits}_l{layers}_lr{learning_rate}_S{seed_parameters}-B.pdf"
                 plot_sphere(
                     val_set[1], label_states, final_states_before, file_path_plots, name
                 )
-                name = f"sphere_q{nqubits}_l{layers}-A.pdf"
+                name = f"sphere_q{nqubits}_l{layers}_lr{learning_rate}_S{seed_parameters}-A.pdf"
                 plot_sphere(
                     val_set[1], label_states, final_states_after, file_path_plots, name
                 )
