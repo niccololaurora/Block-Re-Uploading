@@ -195,6 +195,7 @@ def initialize_data(dataset, training_size, test_size, validation_size, resize, 
     x_train, y_train, x_test, y_test = 0, 0, 0, 0
     digits = 0
     np.random.seed(seed)
+    tf.random.set_seed(seed)
 
     # ==============
     # Choosing dataset and digits/clothes
