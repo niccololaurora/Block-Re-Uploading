@@ -32,10 +32,10 @@
 
 To use this code you need to change some parameters directly from the "main.py" file:
 
-1. **dataset**: "digits", "fashion"
+1. **dataset**: "digits", "fashion"<br>
    You can choose between two datasets.
 
-2. **resize**: "4", "8", "12", "14", "16", "18"
+2. **resize**: "4", "8", "12", "14", "16", "18"<br>
    The "resize" flag indicates the size of the images. You cannot values different from the list above, because the size
    of the image has implications on the entanglement structure of the circuit, which currently supports only those sizes.
 
