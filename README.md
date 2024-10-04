@@ -13,20 +13,32 @@
 
    - Contains the functions to manage the dataset.
 
-4. **plot_functions.py**:
+4. **main.py**:
+
+5. **main_opt.py**:
+
+   - Allows the hyperparameters optimizaziont with Optuna.
+
+6. **plot_functions.py**:
 
    - Contains the "Bloch" class (needed to build and plot the Bloch sphere).
    - Contains "plot_predictions" (plots images and corresponding predictions).
    - Contains "plot_sphere" (uses the Bloch class to plot the Bloch sphere).
    - Contains "plot_loss_accuracy" (plots accuracy and loss on the same canvas).
 
-5. **trainability.py**:
+7. **Trainability**: trainability.py, variance_layers.py, variance_qubits.py
 
    - Runs the Qclassifier for one epoch to evaluate the trainability of the chosen ansatz.
    - Saves the gradients in a folder named "trainability".
+   - variance_layers.py, variance_qubits.py: plots the trainability results.
 
-6. **variance.py**:
-   - Plots the gradient curve using the files stored in the "trainability" folder.
+8. **Tools**:
+
+   - I needed these files to manage ploblems on the cluster. Useless for other people.
+
+9. **Plot-Scripts**:
+
+   - All of the scipts needed to plot interesting stuff: training heatmaps, entanglement heatmap, MSE, ...
 
 ## How can I use this code?
 
