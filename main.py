@@ -43,7 +43,7 @@ def main():
     # Circuit
     local = True
     entanglement = False
-    pooling = "max"
+    pooling = "no"
     pretraining = False
 
     # 'target' --> Se voglio allenare finche non si raggiunge una loss fissata

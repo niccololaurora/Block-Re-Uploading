@@ -87,7 +87,7 @@ class Qclassifier:
         self.nlayers = nlayers
         self.pooling = pooling
         self.entanglement = entanglement
-        self.entanglement_between_layers = True
+        self.entanglement_between_layers = False
         self.n_embed_params = 2 * resize**2
         self.params_1layer = number_params(
             self.n_embed_params, self.nqubits, self.pooling
@@ -109,6 +109,10 @@ class Qclassifier:
             print(f"Layers: {self.nlayers}", file=file)
             print(f"Pooling: {self.pooling}", file=file)
             print(f"Entanglement: {self.entanglement}", file=file)
+            print(
+                f"Entanglement Between Layers: {self.entanglement_between_layers}",
+                file=file,
+            )
             print(self.ansatz.draw(), file=file)
 
     def get_vparams(self):
